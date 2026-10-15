@@ -1,8 +1,13 @@
+export type MediaType = 'image' | 'video';
+
 export interface PhotoItem {
   id: string;
   url: string;
-  author?: string; // Kept optional, hidden from UI
-  caption?: string; // Kept optional, hidden from UI
+  mediaType?: MediaType; // 'image' or 'video'
+  durationSeconds?: number; // Maximum 8.0 seconds
+  thumbnailUrl?: string; // Optional poster for videos
+  author?: string;
+  caption?: string;
   timestamp: number;
   likes: number;
   avatar?: string;
@@ -23,4 +28,5 @@ export interface EventConfig {
   eventName: string;
   slideshowIntervalSeconds: number;
   qrDestinationUrl: string;
+  maxVideoDurationSeconds: number;
 }

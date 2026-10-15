@@ -12,7 +12,7 @@
           0 fotos
         </span>
       </h3>
-      <p class="text-xs sm:text-sm text-slate-500">Fotografías transmitidas en directo a la pantalla gigante</p>
+      <p class="text-xs sm:text-sm text-slate-500">Fotografías y videos cortos transmitidos en directo a la pantalla gigante</p>
     </div>
 
     <!-- Filtros y Opciones Rápidas -->
@@ -39,7 +39,7 @@
     </div>
   </div>
 
-  <!-- Grid Responsivo de Fotos (Sin nombres ni mensajes) -->
+  <!-- Grid Responsivo de Fotos y Videos (Sin nombres ni mensajes) -->
   <div 
     id="photo-wall-grid" 
     class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
@@ -54,11 +54,11 @@
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
       </svg>
     </div>
-    <h4 class="font-heading font-bold text-slate-800 text-lg mb-1">Aún no hay fotos en este evento</h4>
-    <p class="text-xs text-slate-500 max-w-sm mx-auto">Sé el primero en tomar una foto con tu cámara o subirla desde tu galería para verla aquí y en la pantalla.</p>
+    <h4 class="font-heading font-bold text-slate-800 text-lg mb-1">Aún no hay fotos o videos en este evento</h4>
+    <p class="text-xs text-slate-500 max-w-sm mx-auto">Sé el primero en tomar una foto o grabar un video corto de 8 segundos para verlo aquí y en la pantalla.</p>
   </div>
 
-  <!-- Lightbox Modal para Ver Foto en Detalle (Limpio, sin datos personales) -->
+  <!-- Lightbox Modal para Ver Foto o Video en Detalle -->
   <div id="photo-modal" class="fixed inset-0 z-50 hidden bg-black/90 backdrop-blur-md flex items-center justify-center p-4">
     <div class="relative max-w-4xl w-full bg-slate-900 rounded-3xl overflow-hidden border border-white/20 shadow-2xl flex flex-col">
       <button id="btn-close-modal" class="absolute top-4 right-4 z-20 w-10 h-10 rounded-full bg-black/60 text-white hover:bg-black flex items-center justify-center cursor-pointer">
@@ -69,6 +69,7 @@
 
       <div class="max-h-[75vh] bg-black flex items-center justify-center overflow-hidden">
         <img id="modal-img" src="" alt="Detalle" class="w-full h-full object-contain" />
+        <video id="modal-video" src="" controls autoplay loop playsinline class="w-full h-full object-contain hidden"></video>
       </div>
 
       <div class="p-5 bg-slate-900 text-white flex items-center justify-between">
@@ -110,6 +111,7 @@
   // Modal elements
   const modal = document.getElementById('photo-modal');
   const modalImg = document.getElementById('modal-img') as HTMLImageElement;
+  const modalVideo = document.getElementById('modal-video') as HTMLVideoElement;
   const modalPhotoTime = document.getElementById('modal-photo-time');
   const modalLikesCount = document.getElementById('modal-likes-count');
   const modalBtnLike = document.getElementById('modal-btn-like');
@@ -140,7 +142,7 @@
     }
 
     if (countBadge) {
-      countBadge.textContent = `${currentPhotos.length} fotos`;
+      countBadge.textContent = `${currentPhotos.length} fotos y videos`;
     }
 
     if (currentPhotos.length === 0) {
@@ -155,45 +157,53 @@
 
     currentPhotos.forEach((photo) => {
       const isLiked = galleryStore.isPhotoLiked(photo.id);
+      const isVideo = photo.mediaType === 'video';
       const card = document.createElement('div');
       card.className = 'group bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-slate-100 flex flex-col';
 
+      const mediaSrc = photo.thumbnailUrl || (isVideo ? 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=400&q=80' : photo.url);
+
       card.innerHTML = `
-        <!-- Header de la foto (Sin nombre) -->
+        <!-- Header de la foto/video -->
         <div class="p-3.5 flex items-center justify-between border-b border-slate-100">
           <div class="flex items-center gap-2">
-            <span class="w-2 h-2 rounded-full bg-[#00A3E0]"></span>
-            <span class="text-xs font-bold text-[#002855]">Foto del Evento</span>
+            <span class="w-2 h-2 rounded-full ${isVideo ? 'bg-[#7C3AED]' : 'bg-[#00A3E0]'}"></span>
+            <span class="text-xs font-bold text-[#002855]">${isVideo ? 'Video Clip (8s)' : 'Foto del Evento'}</span>
             <span class="text-[11px] text-slate-400 font-medium">· ${formatTime(photo.timestamp)}</span>
           </div>
           <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${
-            photo.source === 'camera' 
+            isVideo 
               ? 'bg-purple-100 text-[#7C3AED]' 
-              : 'bg-sky-100 text-[#00A3E0]'
+              : (photo.source === 'camera' ? 'bg-sky-100 text-[#00A3E0]' : 'bg-slate-100 text-slate-600')
           }">
-            ${photo.source === 'camera' ? '📷 Cámara' : '🖼️ Galería'}
+            ${isVideo ? '🎥 Video 8s' : (photo.source === 'camera' ? '📷 Cámara' : '🖼️ Galería')}
           </span>
         </div>
 
-        <!-- Imagen de la foto -->
-        <div class="relative aspect-4/3 overflow-hidden bg-slate-100 cursor-pointer">
-          <img 
-            src="${photo.url}" 
-            alt="Foto SENATI" 
-            loading="lazy"
-            class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-          />
+        <!-- Vista previa de Media -->
+        <div class="relative aspect-4/3 overflow-hidden bg-black cursor-pointer">
+          ${isVideo ? `
+            <video src="${photo.url}" muted loop playsinline class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"></video>
+            <div class="absolute top-2.5 right-2.5 bg-black/80 backdrop-blur-xs text-white text-[10px] font-black px-2 py-0.5 rounded-full flex items-center gap-1 shadow">
+              <span class="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse"></span>
+              8s
+            </div>
+          ` : `
+            <img 
+              src="${photo.url}" 
+              alt="Foto SENATI" 
+              loading="lazy"
+              class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            />
+          `}
           <div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
             <span class="bg-white/90 text-slate-900 text-xs font-bold px-3 py-1.5 rounded-full shadow-md backdrop-blur-xs flex items-center gap-1.5">
-              <svg class="w-4 h-4 text-[#00A3E0]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"/>
-              </svg>
-              Ver en grande
+              ${isVideo ? '▶ Reproducir Video' : 'Ver en grande'}
             </span>
           </div>
         </div>
 
-        <!-- Footer con botón de Like (Sin comentario) -->
+        <!-- Footer con botón de Like -->
         <div class="p-3.5 flex items-center justify-between bg-slate-50/50">
           <button 
             type="button" 
@@ -213,7 +223,7 @@
 
           <span class="text-[11px] font-semibold text-emerald-600 flex items-center gap-1">
             <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-            Proyectada
+            Proyectado
           </span>
         </div>
       `;
@@ -236,7 +246,26 @@
 
   function openModal(photo: PhotoItem) {
     activeModalPhotoId = photo.id;
-    if (modalImg) modalImg.src = photo.url;
+
+    if (photo.mediaType === 'video') {
+      if (modalImg) modalImg.classList.add('hidden');
+      if (modalVideo) {
+        modalVideo.classList.remove('hidden');
+        modalVideo.src = photo.url;
+        modalVideo.currentTime = 0;
+        modalVideo.play().catch(() => {});
+      }
+    } else {
+      if (modalVideo) {
+        modalVideo.pause();
+        modalVideo.classList.add('hidden');
+      }
+      if (modalImg) {
+        modalImg.classList.remove('hidden');
+        modalImg.src = photo.url;
+      }
+    }
+
     if (modalPhotoTime) modalPhotoTime.textContent = formatTime(photo.timestamp);
     if (modalLikesCount) modalLikesCount.textContent = String(photo.likes);
     modal?.classList.remove('hidden');
@@ -244,6 +273,7 @@
 
   function closeModal() {
     activeModalPhotoId = null;
+    if (modalVideo) modalVideo.pause();
     modal?.classList.add('hidden');
   }
 
@@ -274,7 +304,7 @@
   });
 
   btnResetDemo?.addEventListener('click', () => {
-    if (confirm('¿Restablecer fotos a la demostración inicial?')) {
+    if (confirm('¿Restablecer fotos y videos a la demostración inicial?')) {
       galleryStore.resetToDefaults();
     }
   });

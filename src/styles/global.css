@@ -11,6 +11,7 @@
   --color-senati-electric: #2563EB;
   --color-senati-bg: #F8FAFC;
   --color-senati-card: #FFFFFF;
+  --font-heading: 'Inter', 'Outfit', system-ui, sans-serif;
 }
 
 @layer utilities {
@@ -58,6 +59,10 @@
     -webkit-backdrop-filter: blur(16px);
     border: 1px solid rgba(255, 255, 255, 0.12);
   }
+
+  /* Hide scrollbar but allow scrolling */
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 }
 
 /* Custom Scrollbar */
@@ -76,3 +81,11 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #0088BC;
 }
+
+/* Shake animation for PIN errors */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
+  20%, 40%, 60%, 80% { transform: translateX(4px); }
+}
+.animate-shake { animation: shake 0.5s ease-in-out; }

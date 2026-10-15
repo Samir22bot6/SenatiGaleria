@@ -12,8 +12,8 @@
         </svg>
       </div>
       <div>
-        <h3 class="font-heading font-black text-xl text-[#002855]">Subir Foto al Evento</h3>
-        <p class="text-xs text-slate-500 font-medium">Captura el momento y aparecerá en vivo en la pantalla gigante</p>
+        <h3 class="font-heading font-black text-xl text-[#002855]">Subir Foto o Video Corto (8s)</h3>
+        <p class="text-xs text-slate-500 font-medium">Comparte tus fotos o clips de hasta 8 segundos en la pantalla gigante</p>
       </div>
     </div>
     <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
@@ -24,7 +24,7 @@
 
   <!-- Botones de Acción Inicial (Cámara vs Galería) -->
   <div id="upload-methods-container" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-    <!-- Opción 1: Captura de Cámara en Vivo -->
+    <!-- Opción 1: Captura de Cámara en Vivo (Foto o Video) -->
     <button 
       type="button" 
       id="btn-open-camera"
@@ -32,13 +32,12 @@
     >
       <div class="w-14 h-14 rounded-2xl bg-[#00A3E0] text-white flex items-center justify-center shadow-lg shadow-sky-400/30 group-hover:scale-110 transition-transform">
         <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
         </svg>
       </div>
       <div class="text-center">
-        <span class="font-heading font-extrabold text-[#002855] text-base block">Tomar Foto con Cámara</span>
-        <span class="text-xs text-slate-500">Abre la cámara web o de tu celular</span>
+        <span class="font-heading font-extrabold text-[#002855] text-base block">Cámara / Grabar Video (8s)</span>
+        <span class="text-xs text-slate-500">Toma una foto o graba un clip en vivo</span>
       </div>
     </button>
 
@@ -53,13 +52,13 @@
         </svg>
       </div>
       <div class="text-center">
-        <span class="font-heading font-extrabold text-slate-800 group-hover:text-[#7C3AED] text-base block">Subir desde Galería</span>
-        <span class="text-xs text-slate-500">Selecciona JPG, PNG o WebP de tu dispositivo</span>
+        <span class="font-heading font-extrabold text-slate-800 group-hover:text-[#7C3AED] text-base block">Subir Foto o Video</span>
+        <span class="text-xs text-slate-500">Imágenes (JPG, PNG) o Video MP4/WebM (máx 8s)</span>
       </div>
       <input 
         type="file" 
         id="file-gallery-input" 
-        accept="image/*" 
+        accept="image/*,video/mp4,video/webm,video/quicktime" 
         class="hidden"
       />
     </label>
@@ -69,7 +68,7 @@
   <input 
     type="file" 
     id="camera-fallback-input" 
-    accept="image/*" 
+    accept="image/*,video/*" 
     capture="environment" 
     class="hidden"
   />
@@ -78,32 +77,49 @@
   <div id="camera-modal" class="hidden mt-6 bg-[#001736] rounded-2xl p-4 sm:p-6 border border-slate-700">
     <div class="flex items-center justify-between mb-4">
       <div class="flex items-center gap-2 text-white">
-        <span class="w-2.5 h-2.5 rounded-full bg-red-500 animate-ping"></span>
-        <span class="text-sm font-bold font-heading">Cámara en Vivo</span>
+        <span id="recording-indicator" class="w-2.5 h-2.5 rounded-full bg-red-500 animate-ping"></span>
+        <span id="camera-mode-title" class="text-sm font-bold font-heading">Cámara en Vivo</span>
       </div>
       <button id="btn-close-camera" class="text-slate-400 hover:text-white text-xs font-semibold px-2.5 py-1 rounded-lg bg-white/10 cursor-pointer">
         Cancelar
       </button>
     </div>
 
-    <!-- Video Feed -->
+    <!-- Video Feed con temporizador superpuesto -->
     <div class="relative w-full aspect-4/3 max-w-lg mx-auto bg-black rounded-xl overflow-hidden shadow-inner flex items-center justify-center">
-      <video id="camera-video-feed" autoplay playsinline class="w-full h-full object-cover"></video>
+      <video id="camera-video-feed" autoplay playsinline muted class="w-full h-full object-cover"></video>
       <canvas id="camera-capture-canvas" class="hidden"></canvas>
+
+      <!-- Contador de Video de 8 Segundos -->
+      <div id="countdown-overlay" class="hidden absolute top-4 right-4 bg-red-600/90 text-white font-black text-xs px-3 py-1.5 rounded-full shadow-lg flex items-center gap-2 animate-pulse">
+        <span class="w-2 h-2 rounded-full bg-white"></span>
+        <span>Grabando: <strong id="countdown-seconds">8</strong>s</span>
+      </div>
     </div>
 
-    <!-- Controles de Captura -->
-    <div class="mt-4 flex items-center justify-center gap-4">
+    <!-- Controles de Captura (Foto vs Video 8s) -->
+    <div class="mt-4 flex flex-wrap items-center justify-center gap-4">
       <button 
         type="button" 
         id="btn-snap-photo" 
-        class="btn-bubble-senati text-white px-8 py-3.5 rounded-full font-heading font-bold text-base flex items-center gap-2 cursor-pointer"
+        class="btn-bubble-senati text-white px-6 py-3 rounded-full font-heading font-bold text-sm flex items-center gap-2 cursor-pointer"
       >
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <circle cx="12" cy="12" r="9" stroke-width="2"/>
           <circle cx="12" cy="12" r="4" fill="currentColor"/>
         </svg>
-        <span>Capturar Foto</span>
+        <span>Tomar Foto</span>
+      </button>
+
+      <button 
+        type="button" 
+        id="btn-record-video" 
+        class="btn-bubble-purple text-white px-6 py-3 rounded-full font-heading font-bold text-sm flex items-center gap-2 cursor-pointer"
+      >
+        <svg class="w-5 h-5 text-red-300" fill="currentColor" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="8"/>
+        </svg>
+        <span id="btn-record-label">Grabar Video (8s)</span>
       </button>
     </div>
   </div>
@@ -115,17 +131,18 @@
         <svg class="w-4 h-4 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
           <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
         </svg>
-        Vista Previa de la Fotografía
+        <span id="preview-title">Vista Previa</span>
       </h4>
       <button id="btn-discard-preview" class="text-xs text-red-500 hover:text-red-700 font-bold cursor-pointer">
-        Cambiar foto
+        Cambiar archivo
       </button>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
-      <!-- Imagen de Preview -->
-      <div class="relative w-full aspect-4/3 max-h-80 rounded-xl overflow-hidden shadow-md bg-black/5 border border-slate-200">
-        <img id="preview-image-element" src="" alt="Vista previa de subida" class="w-full h-full object-contain" />
+      <!-- Media Preview (Imagen o Video) -->
+      <div class="relative w-full aspect-4/3 max-h-80 rounded-xl overflow-hidden shadow-md bg-black border border-slate-200 flex items-center justify-center">
+        <img id="preview-image-element" src="" alt="Vista previa de foto" class="w-full h-full object-contain" />
+        <video id="preview-video-element" src="" controls autoplay loop playsinline class="w-full h-full object-contain hidden"></video>
       </div>
 
       <!-- Envío Directo y Confirmación -->
@@ -136,7 +153,7 @@
             Transmisión Instantánea
           </p>
           <p class="text-slate-600 leading-relaxed">
-            Tu foto se proyectará directamente en la pantalla gigante de forma limpia y profesional.
+            Tu foto o clip corto de 8 segundos se proyectará en la pantalla gigante con reproducción automática.
           </p>
         </div>
 
@@ -159,6 +176,7 @@
 <script>
   import confetti from 'canvas-confetti';
   import { galleryStore } from '../lib/store';
+  import type { MediaType } from '../lib/types';
 
   const methodsContainer = document.getElementById('upload-methods-container');
   const btnCamera = document.getElementById('btn-open-camera');
@@ -170,51 +188,95 @@
   const cameraCanvas = document.getElementById('camera-capture-canvas') as HTMLCanvasElement;
   const btnCloseCamera = document.getElementById('btn-close-camera');
   const btnSnap = document.getElementById('btn-snap-photo');
+  const btnRecord = document.getElementById('btn-record-video');
+  const btnRecordLabel = document.getElementById('btn-record-label');
+  const countdownOverlay = document.getElementById('countdown-overlay');
+  const countdownSeconds = document.getElementById('countdown-seconds');
 
   const previewPanel = document.getElementById('preview-panel');
   const previewImg = document.getElementById('preview-image-element') as HTMLImageElement;
+  const previewVideo = document.getElementById('preview-video-element') as HTMLVideoElement;
+  const previewTitle = document.getElementById('preview-title');
   const btnDiscard = document.getElementById('btn-discard-preview');
   const btnConfirm = document.getElementById('btn-confirm-upload');
 
   let mediaStream: MediaStream | null = null;
-  let currentImageDataUrl: string | null = null;
-  let currentSource: 'camera' | 'upload' = 'upload';
+  let mediaRecorder: MediaRecorder | null = null;
+  let recordedChunks: Blob[] = [];
+  let recordTimer: any = null;
+  let secondsRemaining = 8;
 
-  // Gallery File Selection Handler
+  let currentMediaUrl: string | null = null;
+  let currentMediaType: MediaType = 'image';
+  let currentSource: 'camera' | 'upload' = 'upload';
+  let videoDuration: number | undefined = undefined;
+
+  // File Selection (Photos & Videos)
   fileGalleryInput?.addEventListener('change', (e) => {
     const file = (e.target as HTMLInputElement).files?.[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      currentImageDataUrl = event.target?.result as string;
-      currentSource = 'upload';
-      showPreview();
-    };
-    reader.readAsDataURL(file);
+    const isVideo = file.type.startsWith('video/');
+
+    if (isVideo) {
+      // Validate video length (max ~8.5 seconds)
+      const videoElement = document.createElement('video');
+      videoElement.preload = 'metadata';
+      videoElement.src = URL.createObjectURL(file);
+      videoElement.onloadedmetadata = () => {
+        URL.revokeObjectURL(videoElement.src);
+        const duration = videoElement.duration;
+        if (duration > 8.5) {
+          alert(`El video seleccionado dura ${Math.round(duration)} segundos. Por favor selecciona o recorta un clip de máximo 8 segundos.`);
+          if (fileGalleryInput) fileGalleryInput.value = '';
+          return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          currentMediaUrl = event.target?.result as string;
+          currentMediaType = 'video';
+          currentSource = 'upload';
+          videoDuration = duration;
+          showPreview();
+        };
+        reader.readAsDataURL(file);
+      };
+    } else {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        currentMediaUrl = event.target?.result as string;
+        currentMediaType = 'image';
+        currentSource = 'upload';
+        videoDuration = undefined;
+        showPreview();
+      };
+      reader.readAsDataURL(file);
+    }
   });
 
-  // Camera Fallback Input (Mobile browser direct capture)
+  // Mobile fallback input
   cameraFallbackInput?.addEventListener('change', (e) => {
     const file = (e.target as HTMLInputElement).files?.[0];
     if (!file) return;
-
+    const isVideo = file.type.startsWith('video/');
     const reader = new FileReader();
     reader.onload = (event) => {
-      currentImageDataUrl = event.target?.result as string;
+      currentMediaUrl = event.target?.result as string;
+      currentMediaType = isVideo ? 'video' : 'image';
       currentSource = 'camera';
       showPreview();
     };
     reader.readAsDataURL(file);
   });
 
-  // Open Camera using getUserMedia (with mobile fallback)
+  // Open Camera
   btnCamera?.addEventListener('click', async () => {
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
       try {
         mediaStream = await navigator.mediaDevices.getUserMedia({
           video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 960 } },
-          audio: false
+          audio: true // Enabled for 8s short video clips
         });
         if (cameraVideo) {
           cameraVideo.srcObject = mediaStream;
@@ -223,7 +285,7 @@
         cameraModal?.classList.remove('hidden');
         methodsContainer?.classList.add('hidden');
       } catch (err) {
-        console.warn('getUserMedia unavailable, using mobile camera capture input', err);
+        console.warn('getUserMedia unavailable, using mobile capture input', err);
         cameraFallbackInput?.click();
       }
     } else {
@@ -232,6 +294,7 @@
   });
 
   function stopCamera() {
+    stopRecording();
     if (mediaStream) {
       mediaStream.getTracks().forEach((track) => track.stop());
       mediaStream = null;
@@ -242,7 +305,7 @@
 
   btnCloseCamera?.addEventListener('click', stopCamera);
 
-  // Snap photo from camera stream
+  // Snap Single Photo
   btnSnap?.addEventListener('click', () => {
     if (!cameraVideo || !cameraCanvas) return;
     const w = cameraVideo.videoWidth || 640;
@@ -253,31 +316,113 @@
     const ctx = cameraCanvas.getContext('2d');
     if (ctx) {
       ctx.drawImage(cameraVideo, 0, 0, w, h);
-      currentImageDataUrl = cameraCanvas.toDataURL('image/jpeg', 0.9);
+      currentMediaUrl = cameraCanvas.toDataURL('image/jpeg', 0.9);
+      currentMediaType = 'image';
       currentSource = 'camera';
+      videoDuration = undefined;
       stopCamera();
       showPreview();
     }
   });
 
+  // Record 8-Second Video
+  btnRecord?.addEventListener('click', () => {
+    if (mediaRecorder && mediaRecorder.state === 'recording') {
+      stopRecording();
+      return;
+    }
+    startRecording();
+  });
+
+  function startRecording() {
+    if (!mediaStream) return;
+    recordedChunks = [];
+    secondsRemaining = 8;
+
+    try {
+      mediaRecorder = new MediaRecorder(mediaStream, { mimeType: 'video/webm' });
+    } catch {
+      mediaRecorder = new MediaRecorder(mediaStream);
+    }
+
+    mediaRecorder.ondataavailable = (e) => {
+      if (e.data.size > 0) recordedChunks.push(e.data);
+    };
+
+    mediaRecorder.onstop = () => {
+      const blob = new Blob(recordedChunks, { type: 'video/webm' });
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        currentMediaUrl = e.target?.result as string;
+        currentMediaType = 'video';
+        currentSource = 'camera';
+        videoDuration = 8 - secondsRemaining;
+        stopCamera();
+        showPreview();
+      };
+      reader.readAsDataURL(blob);
+    };
+
+    mediaRecorder.start();
+    countdownOverlay?.classList.remove('hidden');
+    if (btnRecordLabel) btnRecordLabel.textContent = 'Detener grabación';
+
+    recordTimer = setInterval(() => {
+      secondsRemaining--;
+      if (countdownSeconds) countdownSeconds.textContent = String(secondsRemaining);
+      if (secondsRemaining <= 0) {
+        stopRecording();
+      }
+    }, 1000);
+  }
+
+  function stopRecording() {
+    if (recordTimer) {
+      clearInterval(recordTimer);
+      recordTimer = null;
+    }
+    countdownOverlay?.classList.add('hidden');
+    if (btnRecordLabel) btnRecordLabel.textContent = 'Grabar Video (8s)';
+    if (mediaRecorder && mediaRecorder.state === 'recording') {
+      mediaRecorder.stop();
+    }
+  }
+
   function showPreview() {
-    if (!currentImageDataUrl || !previewImg || !previewPanel) return;
-    previewImg.src = currentImageDataUrl;
+    if (!currentMediaUrl || !previewPanel) return;
+
+    if (currentMediaType === 'video') {
+      if (previewImg) previewImg.classList.add('hidden');
+      if (previewVideo) {
+        previewVideo.classList.remove('hidden');
+        previewVideo.src = currentMediaUrl;
+      }
+      if (previewTitle) previewTitle.textContent = 'Vista Previa de Video Corto (8s)';
+    } else {
+      if (previewVideo) previewVideo.classList.add('hidden');
+      if (previewImg) {
+        previewImg.classList.remove('hidden');
+        previewImg.src = currentMediaUrl;
+      }
+      if (previewTitle) previewTitle.textContent = 'Vista Previa de Fotografía';
+    }
+
     previewPanel.classList.remove('hidden');
     methodsContainer?.classList.add('hidden');
   }
 
   btnDiscard?.addEventListener('click', () => {
-    currentImageDataUrl = null;
+    currentMediaUrl = null;
     previewPanel?.classList.add('hidden');
     methodsContainer?.classList.remove('hidden');
+    if (previewVideo) previewVideo.pause();
     if (fileGalleryInput) fileGalleryInput.value = '';
     if (cameraFallbackInput) cameraFallbackInput.value = '';
   });
 
-  // Confirm and Transmit directly without author name or caption
+  // Confirm and Transmit
   btnConfirm?.addEventListener('click', () => {
-    if (!currentImageDataUrl) return;
+    if (!currentMediaUrl) return;
 
     if (btnConfirm) {
       btnConfirm.innerHTML = `
@@ -290,13 +435,13 @@
     }
 
     setTimeout(() => {
-      // Add photo to store anonymously (triggers BroadcastChannel event)
       galleryStore.addPhoto({
-        url: currentImageDataUrl!,
+        url: currentMediaUrl!,
+        mediaType: currentMediaType,
+        durationSeconds: videoDuration,
         source: currentSource
       });
 
-      // Confetti celebration
       try {
         confetti({
           particleCount: 50,
@@ -305,10 +450,10 @@
         });
       } catch {}
 
-      // Reset UI
-      currentImageDataUrl = null;
+      currentMediaUrl = null;
       if (fileGalleryInput) fileGalleryInput.value = '';
       if (cameraFallbackInput) cameraFallbackInput.value = '';
+      if (previewVideo) previewVideo.pause();
       previewPanel?.classList.add('hidden');
       methodsContainer?.classList.remove('hidden');
 
@@ -321,7 +466,6 @@
         `;
       }
 
-      // Smooth scroll to feed
       const feed = document.getElementById('photo-wall-grid');
       feed?.scrollIntoView({ behavior: 'smooth' });
     }, 350);
