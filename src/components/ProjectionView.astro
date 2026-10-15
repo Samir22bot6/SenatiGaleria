@@ -1,15 +1,12 @@
 ---
-// ProjectionView.astro — Modo Presentación Cinematográfico con Bloqueo por PIN "2026",
-// Controles por defecto, Botón para Volver al Muro, Cola Prioritaria de Fotos Recientes y Eliminación de Fotos Indecentes.
+// ProjectionView.astro — Modo Presentación Cinematográfico en Vivo para Pantalla Gigante
 import senatiSymbol from '../assets/Senati-Symbol.png';
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
-const adminPin = import.meta.env.PUBLIC_ADMIN_PIN || '2026';
 ---
 
 <div
   id="projection-container"
   data-base-url={base}
-  data-admin-pin={adminPin}
   class="relative w-full h-screen text-white flex flex-col overflow-hidden select-none font-sans"
   style="background: radial-gradient(ellipse at 50% 100%, #1a0533 0%, #0a0118 40%, #000000 100%);"
 >
@@ -20,79 +17,13 @@ const adminPin = import.meta.env.PUBLIC_ADMIN_PIN || '2026';
   <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[1200px] h-[320px] bg-gradient-to-b from-purple-600/15 via-cyan-500/5 to-transparent blur-3xl pointer-events-none z-0"></div>
 
   <!-- ═════════════════════════════════════════════════════════════════════
-       PANTALLA DE BLOQUEO POR PIN "2026" (Visible si no tiene el código)
-  ═════════════════════════════════════════════════════════════════════ -->
-  <div 
-    id="pin-gatekeeper" 
-    class="fixed inset-0 z-[120] bg-black/85 backdrop-blur-xl flex items-center justify-center p-4 transition-all duration-500"
-  >
-    <div class="relative bg-gradient-to-b from-[#16062c] to-[#0a0118] border border-purple-500/30 rounded-3xl p-6 sm:p-10 w-full max-w-md shadow-[0_0_80px_rgba(124,58,237,0.35)] text-center">
-      
-      <!-- Logo y Badge -->
-      <div class="mx-auto mb-4 w-18 h-18 rounded-2xl bg-white p-2 shadow-lg shadow-purple-500/30 flex items-center justify-center">
-        <img src={senatiSymbol.src} alt="SENATI Símbolo" class="w-full h-full object-contain" />
-      </div>
-
-      <h2 class="font-heading font-black text-2xl sm:text-3xl text-white tracking-tight mb-2">
-        Modo Presentación
-      </h2>
-      <p class="text-xs sm:text-sm text-purple-200/80 mb-6 leading-relaxed">
-        Vista exclusiva para la pantalla gigante del evento. Solo personal con el código <span class="text-cyan-300 font-bold bg-white/10 px-1.5 py-0.5 rounded">2026</span> puede gestionar la proyección.
-      </p>
-
-      <!-- Indicador de dígitos ingresados -->
-      <div id="gatekeeper-dots" class="flex justify-center gap-4 mb-6">
-        <div class="pin-dot w-4 h-4 rounded-full border-2 border-white/30 bg-transparent transition-all duration-200"></div>
-        <div class="pin-dot w-4 h-4 rounded-full border-2 border-white/30 bg-transparent transition-all duration-200"></div>
-        <div class="pin-dot w-4 h-4 rounded-full border-2 border-white/30 bg-transparent transition-all duration-200"></div>
-        <div class="pin-dot w-4 h-4 rounded-full border-2 border-white/30 bg-transparent transition-all duration-200"></div>
-      </div>
-
-      <!-- Teclado Numérico Táctil -->
-      <div id="gatekeeper-keypad" class="grid grid-cols-3 gap-2.5 sm:gap-3 mb-6">
-        {[1,2,3,4,5,6,7,8,9,'',0,'⌫'].map((k) => (
-          k !== '' ? (
-            <button 
-              type="button" 
-              class="gatekeeper-key h-12 sm:h-14 rounded-2xl bg-white/10 hover:bg-purple-500/30 active:scale-95 border border-white/15 text-white font-black text-xl transition-all cursor-pointer shadow-sm"
-              data-key={String(k)}
-            >
-              {k}
-            </button>
-          ) : (<div></div>)
-        ))}
-      </div>
-
-      <!-- Mensaje de Error de PIN -->
-      <p id="gatekeeper-error" class="hidden text-red-400 text-xs sm:text-sm font-semibold mb-5 bg-red-500/15 border border-red-500/30 py-2 rounded-xl">
-        Código incorrecto. Ingresa el código "2026".
-      </p>
-
-      <!-- Botón para regresar al Muro (para asistentes con celular) -->
-      <div class="pt-2 border-t border-white/10 flex flex-col gap-2">
-        <a 
-          href={`${base}/galeria`} 
-          class="w-full py-3 px-4 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/15 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all cursor-pointer"
-        >
-          <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
-          </svg>
-          <span>Volver al Muro (Subir fotos desde el celular)</span>
-        </a>
-        <p class="text-[11px] text-white/40">Si estás participando como asistente, sube tus fotos desde el muro.</p>
-      </div>
-
-    </div>
-  </div>
-
-  <!-- ═════════════════════════════════════════════════════════════════════
-       CABECERA Y BARRA DE CONTROL POR DEFECTO (Visible para el moderador)
+       CABECERA Y BARRA DE CONTROL DE PROYECCIÓN
   ═════════════════════════════════════════════════════════════════════ -->
   <header class="relative z-30 px-3 sm:px-6 py-2.5 flex flex-wrap items-center justify-between gap-3 bg-black/60 backdrop-blur-xl border-b border-white/10 shadow-lg">
     
     <!-- Lado Izquierdo: Botón Volver al Muro + Logo SENATI -->
     <div class="flex items-center gap-3">
-      <!-- Botón Volver al Muro recuperado -->
+      <!-- Botón Volver al Muro -->
       <a 
         href={`${base}/galeria`}
         id="btn-back-to-wall"
@@ -117,13 +48,13 @@ const adminPin = import.meta.env.PUBLIC_ADMIN_PIN || '2026';
         </div>
       </div>
 
-      <span class="hidden md:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-amber-400/20 text-amber-300 border border-amber-400/30 uppercase tracking-wider">
-        <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
-        MODERADOR 2026
+      <span class="hidden md:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 uppercase tracking-wider">
+        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+        EN VIVO
       </span>
     </div>
 
-    <!-- Centro: Controles de Reproducción por Defecto -->
+    <!-- Centro: Controles de Reproducción -->
     <div class="flex items-center gap-1.5 sm:gap-2">
       <!-- Anterior -->
       <button 
@@ -165,21 +96,9 @@ const adminPin = import.meta.env.PUBLIC_ADMIN_PIN || '2026';
           <option value="15000" class="bg-slate-900 text-white">15s</option>
         </select>
       </div>
-
-      <!-- BOTÓN ELIMINAR FOTO INDECENTE (Moderador) -->
-      <button 
-        id="ctrl-btn-delete" 
-        class="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-red-600/30 hover:bg-red-600/60 active:scale-95 border border-red-500/40 text-red-200 hover:text-white text-xs font-bold transition-all cursor-pointer shadow-lg shadow-red-900/20"
-        title="Eliminar esta foto por contenido indecente o inapropiado"
-      >
-        <svg class="w-3.5 h-3.5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-        </svg>
-        <span class="hidden md:inline">Eliminar</span>
-      </button>
     </div>
 
-    <!-- Lado Derecho: Contador, Fullscreen y Bloquear/Salir -->
+    <!-- Lado Derecho: Contador y Fullscreen -->
     <div class="flex items-center gap-2">
       <!-- Contador de Fotos -->
       <div class="flex items-center gap-1 px-3 py-1 rounded-xl bg-white/10 border border-white/10 text-[11px] font-bold text-white/80">
@@ -196,15 +115,6 @@ const adminPin = import.meta.env.PUBLIC_ADMIN_PIN || '2026';
       >
         <svg id="icon-expand" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-5h-4m4 0v4m0-4l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
         <svg id="icon-compress" class="w-4 h-4 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 9V4.5M9 9H4.5M9 9L3.75 3.75M9 15v4.5M9 15H4.5M9 15l-5.25 5.25M15 9h4.5M15 9V4.5M15 9l5.25-5.25M15 15h4.5M15 15v4.5M15 15l5.25 5.25"/></svg>
-      </button>
-
-      <!-- Botón Bloquear / Salir de Moderador -->
-      <button 
-        id="btn-lock-session" 
-        class="p-2 rounded-xl bg-white/10 hover:bg-red-500/20 text-white/50 hover:text-red-300 transition-all cursor-pointer border border-white/10" 
-        title="Cerrar sesión de moderador / Bloquear pantalla"
-      >
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
       </button>
     </div>
   </header>
@@ -408,18 +318,10 @@ const adminPin = import.meta.env.PUBLIC_ADMIN_PIN || '2026';
   import type { PhotoItem } from '../lib/types';
 
   // ── Constantes y Configuración ──
-  const SESSION_KEY = 'senati_admin_session_v1';
   const container   = document.getElementById('projection-container') as HTMLElement;
-  const ADMIN_PIN   = container?.dataset.adminPin || '2026';
   const BASE_URL    = container?.dataset.baseUrl  || '';
 
   // ── DOM Refs ──
-  const pinGatekeeper   = document.getElementById('pin-gatekeeper')!;
-  const gatekeeperDots  = document.querySelectorAll<HTMLElement>('.pin-dot');
-  const gatekeeperKeys  = document.querySelectorAll<HTMLButtonElement>('.gatekeeper-key');
-  const gatekeeperError = document.getElementById('gatekeeper-error')!;
-  const btnLockSession  = document.getElementById('btn-lock-session')!;
-
   const strip           = document.getElementById('thumbnail-strip')!;
   const mainImage       = document.getElementById('main-display-image') as HTMLImageElement;
   const mainVideo       = document.getElementById('main-display-video') as HTMLVideoElement;
@@ -441,7 +343,6 @@ const adminPin = import.meta.env.PUBLIC_ADMIN_PIN || '2026';
   const iconPlay        = document.getElementById('icon-play')!;
   const labelPlay       = document.getElementById('label-play')!;
   const ctrlSpeed       = document.getElementById('ctrl-select-speed') as HTMLSelectElement;
-  const ctrlBtnDelete   = document.getElementById('ctrl-btn-delete')!;
 
   const btnFullscreen   = document.getElementById('btn-fullscreen')!;
   const iconExpand      = document.getElementById('icon-expand')!;
@@ -454,7 +355,6 @@ const adminPin = import.meta.env.PUBLIC_ADMIN_PIN || '2026';
   let isSlideshowActive   = true;
   let slideshowInterval   = 5000;
   let slideTimer: ReturnType<typeof setTimeout> | null = null;
-  let gatekeeperBuffer    = '';
   let priorityQueue: PhotoItem[] = []; // Cola de fotos recién subidas que deben ser las próximas en proyectarse
 
   // ── Formateador de tiempo relativo ──
@@ -484,105 +384,15 @@ const adminPin = import.meta.env.PUBLIC_ADMIN_PIN || '2026';
     if (qrUrlInput) qrUrlInput.value = url;
   }
 
-  // ═══════════════════════════════════════════════════════════════════
-  //  BLOQUEO Y AUTENTICACIÓN POR CÓDIGO PIN "2026"
-  // ═══════════════════════════════════════════════════════════════════
-  function isUnlocked(): boolean {
-    return sessionStorage.getItem(SESSION_KEY) === 'granted';
-  }
-
-  function unlockPresentation() {
-    sessionStorage.setItem(SESSION_KEY, 'granted');
-    pinGatekeeper.classList.add('opacity-0', 'pointer-events-none');
-    setTimeout(() => pinGatekeeper.classList.add('hidden'), 500);
-
-    try {
-      confetti({
-        particleCount: 80,
-        spread: 90,
-        origin: { y: 0.5 },
-        colors: ['#00A3E0', '#7C3AED', '#FFD700', '#FFFFFF']
-      });
-    } catch {}
-
-    isSlideshowActive = true;
-    updatePlayPauseButton();
-    selectPhoto(photos.length > 0 ? currentIndex : 0);
-  }
-
-  function lockPresentation() {
-    sessionStorage.removeItem(SESSION_KEY);
-    clearSlideTimer();
-    isSlideshowActive = false;
-    gatekeeperBuffer = '';
-    updateGatekeeperDots();
-    gatekeeperError.classList.add('hidden');
-    pinGatekeeper.classList.remove('hidden', 'opacity-0', 'pointer-events-none');
-  }
-
-  function updateGatekeeperDots() {
-    gatekeeperDots.forEach((dot, i) => {
-      const filled = i < gatekeeperBuffer.length;
-      dot.classList.toggle('bg-cyan-400', filled);
-      dot.classList.toggle('border-cyan-400', filled);
-      dot.classList.toggle('scale-110', filled);
-      dot.classList.toggle('bg-transparent', !filled);
-      dot.classList.toggle('border-white/30', !filled);
-    });
-  }
-
-  function appendGatekeeperDigit(d: string) {
-    if (d === '⌫') {
-      gatekeeperBuffer = gatekeeperBuffer.slice(0, -1);
-    } else if (gatekeeperBuffer.length < 4 && /\d/.test(d)) {
-      gatekeeperBuffer += d;
-    }
-    updateGatekeeperDots();
-    gatekeeperError.classList.add('hidden');
-
-    if (gatekeeperBuffer.length === 4) {
-      validateGatekeeperPin();
-    }
-  }
-
-  function validateGatekeeperPin() {
-    if (gatekeeperBuffer === ADMIN_PIN) {
-      unlockPresentation();
-    } else {
-      gatekeeperBuffer = '';
-      updateGatekeeperDots();
-      gatekeeperError.classList.remove('hidden');
-    }
-  }
-
-  gatekeeperKeys.forEach(k => {
-    k.addEventListener('click', () => appendGatekeeperDigit(k.dataset.key!));
-  });
-
+  // ── Atajos de Teclado ──
   window.addEventListener('keydown', (e: KeyboardEvent) => {
-    // Si la pantalla de bloqueo está activa
-    if (!pinGatekeeper.classList.contains('hidden')) {
-      if (e.key >= '0' && e.key <= '9') appendGatekeeperDigit(e.key);
-      else if (e.key === 'Backspace') appendGatekeeperDigit('⌫');
-      else if (e.key === 'Enter') validateGatekeeperPin();
-      return;
-    }
-
-    // Atajos de moderador cuando ya está desbloqueado
     if (e.key === 'ArrowLeft') selectPhoto(currentIndex - 1);
     if (e.key === 'ArrowRight') nextSlide();
     if (e.key === ' ' && e.target === document.body) {
       e.preventDefault();
       toggleSlideshow();
     }
-    if (e.key.toLowerCase() === 'f') btnFullscreen.click();
-    if (e.key.toLowerCase() === 'delete') ctrlBtnDelete.click();
-  });
-
-  btnLockSession.addEventListener('click', () => {
-    if (confirm('¿Bloquear la pantalla de presentación? Se requerirá el código "2026" para reingresar.')) {
-      lockPresentation();
-    }
+    if (e.key.toLowerCase() === 'f') btnFullscreen?.click();
   });
 
   // ═══════════════════════════════════════════════════════════════════
@@ -949,42 +759,6 @@ const adminPin = import.meta.env.PUBLIC_ADMIN_PIN || '2026';
     if (isSlideshowActive) scheduleNext();
   });
 
-  // ── ELIMINACIÓN DE FOTOS INDECENTES POR MODERADOR ──
-  ctrlBtnDelete.addEventListener('click', () => {
-    if (photos.length === 0) return;
-    const target = photos[currentIndex];
-    if (!target) return;
-
-    const isVideo = target.mediaType === 'video';
-    const confirmDelete = confirm(
-      `⚠️ ¿Eliminar permanentemente este ${isVideo ? 'video' : 'foto'} por contenido indecente o inapropiado?\n\nSe borrará de la pantalla gigante y del muro de todos los asistentes.`
-    );
-
-    if (!confirmDelete) return;
-
-    // Eliminar del store (actualiza LocalStorage, Supabase y BroadcastChannel)
-    galleryStore.deletePhoto(target.id);
-
-    // Retirar de la lista local
-    photos = photos.filter(p => p.id !== target.id);
-    priorityQueue = priorityQueue.filter(p => p.id !== target.id);
-
-    alert(`✅ ${isVideo ? 'Video' : 'Foto'} eliminado(a) con éxito.`);
-
-    if (photos.length === 0) {
-      mainImage.src = '';
-      mainVideo.src = '';
-      counterCurrent.textContent = '0';
-      counterTotal.textContent = '0';
-      renderThumbnails();
-      renderFilmStrips();
-      return;
-    }
-
-    // Avanzar a la siguiente foto válida
-    selectPhoto(Math.min(currentIndex, photos.length - 1));
-  });
-
   // ── Fullscreen ──
   btnFullscreen.addEventListener('click', () => {
     if (!document.fullscreenElement) {
@@ -1011,15 +785,13 @@ const adminPin = import.meta.env.PUBLIC_ADMIN_PIN || '2026';
   function init() {
     photos = galleryStore.getPhotos();
 
-    // Iniciar marquee lateral con fotos existentes
+    // Iniciar marquee lateral con fotos existentes y miniaturas
     renderFilmStrips();
+    renderThumbnails();
 
-    // 1. Verificar si ya tiene el PIN '2026' desbloqueado
-    if (isUnlocked()) {
-      pinGatekeeper.classList.add('hidden', 'opacity-0', 'pointer-events-none');
+    // Iniciar presentación en vivo directamente sin código
+    if (photos.length > 0) {
       selectPhoto(0);
-    } else {
-      pinGatekeeper.classList.remove('hidden', 'opacity-0', 'pointer-events-none');
     }
 
     generateQR(getMobileUrl());

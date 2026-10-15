@@ -74,7 +74,9 @@ class EventGalleryStore {
           timestamp: row.created_at ? new Date(row.created_at).getTime() : Date.now(),
           likes: Number(row.like_count || 0),
           isApproved: row.approved !== false,
-          source: 'upload'
+          source: 'upload',
+          author: row.user_id || undefined,
+          uploaderDeviceId: row.device_id || undefined
         }));
 
         // Combinar fotos remotas con las fotos locales
@@ -201,6 +203,8 @@ class EventGalleryStore {
     durationSeconds?: number;
     thumbnailUrl?: string;
     source?: 'camera' | 'upload';
+    author?: string;
+    uploaderDeviceId?: string;
   }): PhotoItem {
     const photos = this.getPhotos();
     const newMedia: PhotoItem = {
@@ -210,6 +214,8 @@ class EventGalleryStore {
       durationSeconds: mediaInput.durationSeconds,
       thumbnailUrl: mediaInput.thumbnailUrl,
       source: mediaInput.source || 'upload',
+      author: mediaInput.author || this.getCurrentUserId(),
+      uploaderDeviceId: mediaInput.uploaderDeviceId || this.getDeviceId(),
       timestamp: Date.now(),
       likes: 0,
       isApproved: true,
@@ -235,6 +241,53 @@ class EventGalleryStore {
     }
 
     return newMedia;
+  }
+
+  public getDeviceId(): string {
+    if (typeof window === 'undefined') return '';
+    let id = localStorage.getItem('senati_user_device_id');
+    if (!id) {
+      id = 'dev_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 9);
+      localStorage.setItem('senati_user_device_id', id);
+    }
+    return id;
+  }
+
+  public getCurrentUserId(): string {
+    const session = this.getSession();
+    if (session) {
+      return session.email || session.phone || session.name || 'Asistente SENATI';
+    }
+    return '';
+  }
+
+  /**
+   * Comprueba si el usuario actual es el propietario/autor de la foto o video
+   */
+  public isUserPhotoOwner(photo: PhotoItem): boolean {
+    if (typeof window === 'undefined' || !photo) return false;
+    const currentUserId = this.getCurrentUserId();
+    const currentDeviceId = this.getDeviceId();
+
+    // 1. Coincidencia por ID de dispositivo (máxima fiabilidad en móvil)
+    if (photo.uploaderDeviceId && currentDeviceId && photo.uploaderDeviceId === currentDeviceId) {
+      return true;
+    }
+
+    // 2. Coincidencia por usuario registrado (email, teléfono o nombre)
+    if (photo.author && currentUserId) {
+      if (photo.author.toLowerCase() === currentUserId.toLowerCase()) {
+        return true;
+      }
+      const session = this.getSession();
+      if (session) {
+        if (session.email && photo.author.toLowerCase() === session.email.toLowerCase()) return true;
+        if (session.phone && photo.author === session.phone) return true;
+        if (session.name && photo.author.toLowerCase() === session.name.toLowerCase()) return true;
+      }
+    }
+
+    return false;
   }
 
   public toggleLike(photoId: string): number {

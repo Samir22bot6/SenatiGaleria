@@ -7,6 +7,7 @@ export interface PhotoItem {
   durationSeconds?: number; // Maximum 8.0 seconds
   thumbnailUrl?: string; // Optional poster for videos
   author?: string;
+  uploaderDeviceId?: string;
   caption?: string;
   timestamp: number;
   likes: number;

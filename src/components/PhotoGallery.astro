@@ -87,12 +87,25 @@
           </div>
         </div>
 
-        <button id="modal-btn-like" class="flex items-center gap-2 px-4 py-2 rounded-2xl bg-white/10 hover:bg-pink-600/30 text-pink-400 font-bold transition-all cursor-pointer">
-          <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24">
-            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-          </svg>
-          <span id="modal-likes-count">0</span>
-        </button>
+        <div class="flex items-center gap-2">
+          <button 
+            id="modal-btn-delete" 
+            class="hidden items-center gap-1.5 px-3 py-2 rounded-2xl bg-red-600/20 hover:bg-red-600/40 text-red-300 hover:text-white text-xs font-bold transition-all cursor-pointer border border-red-500/30"
+            title="Eliminar solo mi publicación"
+          >
+            <svg class="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+            </svg>
+            <span>Eliminar mi publicación</span>
+          </button>
+
+          <button id="modal-btn-like" class="flex items-center gap-2 px-4 py-2 rounded-2xl bg-white/10 hover:bg-pink-600/30 text-pink-400 font-bold transition-all cursor-pointer">
+            <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24">
+              <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+            </svg>
+            <span id="modal-likes-count">0</span>
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -116,6 +129,7 @@
   const modalPhotoTime = document.getElementById('modal-photo-time');
   const modalLikesCount = document.getElementById('modal-likes-count');
   const modalBtnLike = document.getElementById('modal-btn-like');
+  const modalBtnDelete = document.getElementById('modal-btn-delete');
   const btnCloseModal = document.getElementById('btn-close-modal');
 
   let currentPhotos: PhotoItem[] = [];
@@ -159,10 +173,9 @@
     currentPhotos.forEach((photo) => {
       const isLiked = galleryStore.isPhotoLiked(photo.id);
       const isVideo = photo.mediaType === 'video';
+      const isOwner = galleryStore.isUserPhotoOwner(photo);
       const card = document.createElement('div');
       card.className = 'group bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-slate-100 flex flex-col';
-
-      const mediaSrc = photo.thumbnailUrl || (isVideo ? 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=400&q=80' : photo.url);
 
       card.innerHTML = `
         <!-- Header de la foto/video -->
@@ -172,13 +185,20 @@
             <span class="text-xs font-bold text-[#002855]">${isVideo ? 'Video Clip (8s)' : 'Foto del Evento'}</span>
             <span class="text-[11px] text-slate-400 font-medium">· ${formatTime(photo.timestamp)}</span>
           </div>
-          <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${
-            isVideo 
-              ? 'bg-purple-100 text-[#7C3AED]' 
-              : (photo.source === 'camera' ? 'bg-sky-100 text-[#00A3E0]' : 'bg-slate-100 text-slate-600')
-          }">
-            ${isVideo ? '🎥 Video 8s' : (photo.source === 'camera' ? '📷 Cámara' : '🖼️ Galería')}
-          </span>
+          <div class="flex items-center gap-1.5">
+            ${isOwner ? `
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-cyan-50 text-cyan-700 border border-cyan-200">
+                Tu publicación
+              </span>
+            ` : ''}
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${
+              isVideo 
+                ? 'bg-purple-100 text-[#7C3AED]' 
+                : (photo.source === 'camera' ? 'bg-sky-100 text-[#00A3E0]' : 'bg-slate-100 text-slate-600')
+            }">
+              ${isVideo ? '🎥 Video 8s' : (photo.source === 'camera' ? '📷 Cámara' : '🖼️ Galería')}
+            </span>
+          </div>
         </div>
 
         <!-- Vista previa de Media -->
@@ -204,8 +224,8 @@
           </div>
         </div>
 
-        <!-- Footer con botón de Like -->
-        <div class="p-3.5 flex items-center justify-between bg-slate-50/50">
+        <!-- Footer con botón de Like y Botón de Eliminar (SOLO para el autor) -->
+        <div class="p-3.5 flex items-center justify-between bg-slate-50/50 gap-2">
           <button 
             type="button" 
             data-like-btn="${photo.id}"
@@ -222,10 +242,26 @@
             <span>${photo.likes === 1 ? 'Me gusta' : 'Me gustas'}</span>
           </button>
 
-          <span class="text-[11px] font-semibold text-emerald-600 flex items-center gap-1">
-            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-            Proyectado
-          </span>
+          <div class="flex items-center gap-2">
+            ${isOwner ? `
+              <button 
+                type="button" 
+                data-delete-btn="${photo.id}"
+                class="flex items-center gap-1 text-[11px] font-bold py-1.5 px-3 rounded-full bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 transition-all cursor-pointer active:scale-95 shadow-xs"
+                title="Eliminar solo mi publicación"
+              >
+                <svg class="w-3.5 h-3.5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                </svg>
+                <span>Eliminar</span>
+              </button>
+            ` : `
+              <span class="text-[11px] font-semibold text-emerald-600 flex items-center gap-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                Proyectado
+              </span>
+            `}
+          </div>
         </div>
       `;
 
@@ -240,6 +276,17 @@
         galleryStore.toggleLike(photo.id);
         renderGallery();
       });
+
+      if (isOwner) {
+        const deleteBtn = card.querySelector(`[data-delete-btn="${photo.id}"]`);
+        deleteBtn?.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (confirm('¿Deseas eliminar tu foto del evento y de la pantalla gigante? Esta acción no se puede deshacer.')) {
+            galleryStore.deletePhoto(photo.id);
+            renderGallery();
+          }
+        });
+      }
 
       grid.appendChild(card);
     });
@@ -267,6 +314,16 @@
       }
     }
 
+    if (modalBtnDelete) {
+      if (galleryStore.isUserPhotoOwner(photo)) {
+        modalBtnDelete.classList.remove('hidden');
+        modalBtnDelete.classList.add('inline-flex');
+      } else {
+        modalBtnDelete.classList.add('hidden');
+        modalBtnDelete.classList.remove('inline-flex');
+      }
+    }
+
     if (modalPhotoTime) modalPhotoTime.textContent = formatTime(photo.timestamp);
     if (modalLikesCount) modalLikesCount.textContent = String(photo.likes);
     modal?.classList.remove('hidden');
@@ -288,6 +345,15 @@
     const newLikes = galleryStore.toggleLike(activeModalPhotoId);
     if (modalLikesCount) modalLikesCount.textContent = String(newLikes);
     renderGallery();
+  });
+
+  modalBtnDelete?.addEventListener('click', () => {
+    if (!activeModalPhotoId) return;
+    if (confirm('¿Deseas eliminar tu publicación? Se retirará del muro y de la pantalla gigante.')) {
+      galleryStore.deletePhoto(activeModalPhotoId);
+      closeModal();
+      renderGallery();
+    }
   });
 
   btnSortRecent?.addEventListener('click', () => {

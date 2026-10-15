@@ -1398,7 +1398,9 @@
       url: finalUrl!,
       mediaType: currentMediaType,
       durationSeconds: videoDuration,
-      source: currentSource
+      source: currentSource,
+      author: userId,
+      uploaderDeviceId: galleryStore.getDeviceId()
     });
 
     try {
