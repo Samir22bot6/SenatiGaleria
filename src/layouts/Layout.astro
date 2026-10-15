@@ -1,5 +1,6 @@
 ---
 import '../styles/global.css';
+import senatiSymbol from '../assets/Senati-Symbol.png';
 
 interface Props {
   title?: string;
@@ -21,7 +22,9 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" type="image/svg+xml" href={`${base}/favicon.svg`} />
+    <link rel="icon" type="image/png" href={`${base}/Senati-Symbol.png`} />
+    <link rel="shortcut icon" type="image/png" href={`${base}/Senati-Symbol.png`} />
+    <link rel="apple-touch-icon" href={`${base}/Senati-Symbol.png`} />
     <meta name="generator" content={Astro.generator} />
     <meta name="description" content={description} />
     
@@ -45,12 +48,8 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
       <header class="bg-[#002855] text-white sticky top-0 z-40 shadow-md border-b border-[#003875]">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <a href={`${base}/`} class="flex items-center gap-3 group">
-            <div class="w-10 h-10 rounded-xl bg-white p-1.5 flex items-center justify-center shadow-md group-hover:scale-105 transition-transform">
-              <svg viewBox="0 0 100 100" class="w-full h-full fill-[#002855]">
-                <rect width="100" height="100" rx="16" fill="#002855"/>
-                <path d="M22 30h56v10H22zM22 46h40v10H22zM22 62h56v10H22z" fill="#00A3E0"/>
-                <circle cx="72" cy="51" r="5" fill="#FFFFFF"/>
-              </svg>
+            <div class="w-11 h-11 rounded-2xl bg-white p-1 flex items-center justify-center shadow-md group-hover:scale-105 transition-transform overflow-hidden border border-white/20">
+              <img src={senatiSymbol.src} alt="Logo SENATI" class="w-full h-full object-contain" />
             </div>
             <div>
               <div class="flex items-center gap-2">
