@@ -1,0 +1,329 @@
+---
+// PhotoUploader.astro
+---
+
+<div class="w-full bg-white rounded-3xl p-6 sm:p-8 shadow-xl shadow-slate-200/50 border border-slate-100">
+  <div class="flex items-center justify-between mb-6 pb-4 border-b border-slate-100">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-[#00A3E0]/10 text-[#002855] flex items-center justify-center">
+        <svg class="w-6 h-6 text-[#00A3E0]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+        </svg>
+      </div>
+      <div>
+        <h3 class="font-heading font-black text-xl text-[#002855]">Subir Foto al Evento</h3>
+        <p class="text-xs text-slate-500 font-medium">Captura el momento y aparecerá en vivo en la pantalla gigante</p>
+      </div>
+    </div>
+    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+      <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+      Transmisión Activa
+    </span>
+  </div>
+
+  <!-- Botones de Acción Inicial (Cámara vs Galería) -->
+  <div id="upload-methods-container" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <!-- Opción 1: Captura de Cámara en Vivo -->
+    <button 
+      type="button" 
+      id="btn-open-camera"
+      class="group p-6 rounded-2xl border-2 border-dashed border-[#00A3E0] hover:border-[#002855] bg-sky-50/50 hover:bg-sky-50 flex flex-col items-center justify-center gap-3 transition-all cursor-pointer"
+    >
+      <div class="w-14 h-14 rounded-2xl bg-[#00A3E0] text-white flex items-center justify-center shadow-lg shadow-sky-400/30 group-hover:scale-110 transition-transform">
+        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+        </svg>
+      </div>
+      <div class="text-center">
+        <span class="font-heading font-extrabold text-[#002855] text-base block">Tomar Foto con Cámara</span>
+        <span class="text-xs text-slate-500">Abre la cámara web o de tu celular</span>
+      </div>
+    </button>
+
+    <!-- Opción 2: Subir desde Galería de Archivos -->
+    <label 
+      for="file-gallery-input"
+      class="group p-6 rounded-2xl border-2 border-dashed border-slate-300 hover:border-[#7C3AED] bg-slate-50/70 hover:bg-purple-50/40 flex flex-col items-center justify-center gap-3 transition-all cursor-pointer"
+    >
+      <div class="w-14 h-14 rounded-2xl bg-white border border-slate-200 text-slate-700 flex items-center justify-center shadow-md group-hover:scale-110 group-hover:text-[#7C3AED] group-hover:border-[#7C3AED]/30 transition-all">
+        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+        </svg>
+      </div>
+      <div class="text-center">
+        <span class="font-heading font-extrabold text-slate-800 group-hover:text-[#7C3AED] text-base block">Subir desde Galería</span>
+        <span class="text-xs text-slate-500">Selecciona JPG, PNG o WebP de tu dispositivo</span>
+      </div>
+      <input 
+        type="file" 
+        id="file-gallery-input" 
+        accept="image/*" 
+        class="hidden"
+      />
+    </label>
+  </div>
+
+  <!-- Fallback móvil para captura de cámara -->
+  <input 
+    type="file" 
+    id="camera-fallback-input" 
+    accept="image/*" 
+    capture="environment" 
+    class="hidden"
+  />
+
+  <!-- Modal / Vista de Cámara en Vivo con getUserMedia -->
+  <div id="camera-modal" class="hidden mt-6 bg-[#001736] rounded-2xl p-4 sm:p-6 border border-slate-700">
+    <div class="flex items-center justify-between mb-4">
+      <div class="flex items-center gap-2 text-white">
+        <span class="w-2.5 h-2.5 rounded-full bg-red-500 animate-ping"></span>
+        <span class="text-sm font-bold font-heading">Cámara en Vivo</span>
+      </div>
+      <button id="btn-close-camera" class="text-slate-400 hover:text-white text-xs font-semibold px-2.5 py-1 rounded-lg bg-white/10 cursor-pointer">
+        Cancelar
+      </button>
+    </div>
+
+    <!-- Video Feed -->
+    <div class="relative w-full aspect-4/3 max-w-lg mx-auto bg-black rounded-xl overflow-hidden shadow-inner flex items-center justify-center">
+      <video id="camera-video-feed" autoplay playsinline class="w-full h-full object-cover"></video>
+      <canvas id="camera-capture-canvas" class="hidden"></canvas>
+    </div>
+
+    <!-- Controles de Captura -->
+    <div class="mt-4 flex items-center justify-center gap-4">
+      <button 
+        type="button" 
+        id="btn-snap-photo" 
+        class="btn-bubble-senati text-white px-8 py-3.5 rounded-full font-heading font-bold text-base flex items-center gap-2 cursor-pointer"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="9" stroke-width="2"/>
+          <circle cx="12" cy="12" r="4" fill="currentColor"/>
+        </svg>
+        <span>Capturar Foto</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- 2. Previsualización y Envío Inmediato (Sin campo de nombre ni mensaje) -->
+  <div id="preview-panel" class="hidden mt-6 bg-slate-50 border border-slate-200 rounded-2xl p-6">
+    <div class="flex items-center justify-between mb-4">
+      <h4 class="font-heading font-bold text-slate-800 text-sm flex items-center gap-2">
+        <svg class="w-4 h-4 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+        </svg>
+        Vista Previa de la Fotografía
+      </h4>
+      <button id="btn-discard-preview" class="text-xs text-red-500 hover:text-red-700 font-bold cursor-pointer">
+        Cambiar foto
+      </button>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+      <!-- Imagen de Preview -->
+      <div class="relative w-full aspect-4/3 max-h-80 rounded-xl overflow-hidden shadow-md bg-black/5 border border-slate-200">
+        <img id="preview-image-element" src="" alt="Vista previa de subida" class="w-full h-full object-contain" />
+      </div>
+
+      <!-- Envío Directo y Confirmación -->
+      <div class="space-y-4">
+        <div class="p-4 rounded-xl bg-blue-50/70 border border-blue-100 text-xs text-[#002855]">
+          <p class="font-bold flex items-center gap-1.5 text-sm mb-1">
+            <span class="w-2 h-2 rounded-full bg-[#00A3E0]"></span>
+            Transmisión Instantánea
+          </p>
+          <p class="text-slate-600 leading-relaxed">
+            Tu foto se proyectará directamente en la pantalla gigante de forma limpia y profesional.
+          </p>
+        </div>
+
+        <!-- Botón de Envío Definitivo -->
+        <button 
+          type="button" 
+          id="btn-confirm-upload" 
+          class="w-full btn-bubble-senati text-white font-heading font-black text-base py-4 px-6 rounded-2xl uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer shadow-lg"
+        >
+          <span>Transmitir a la Pantalla Gigante</span>
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  import confetti from 'canvas-confetti';
+  import { galleryStore } from '../lib/store';
+
+  const methodsContainer = document.getElementById('upload-methods-container');
+  const btnCamera = document.getElementById('btn-open-camera');
+  const cameraFallbackInput = document.getElementById('camera-fallback-input') as HTMLInputElement;
+  const fileGalleryInput = document.getElementById('file-gallery-input') as HTMLInputElement;
+
+  const cameraModal = document.getElementById('camera-modal');
+  const cameraVideo = document.getElementById('camera-video-feed') as HTMLVideoElement;
+  const cameraCanvas = document.getElementById('camera-capture-canvas') as HTMLCanvasElement;
+  const btnCloseCamera = document.getElementById('btn-close-camera');
+  const btnSnap = document.getElementById('btn-snap-photo');
+
+  const previewPanel = document.getElementById('preview-panel');
+  const previewImg = document.getElementById('preview-image-element') as HTMLImageElement;
+  const btnDiscard = document.getElementById('btn-discard-preview');
+  const btnConfirm = document.getElementById('btn-confirm-upload');
+
+  let mediaStream: MediaStream | null = null;
+  let currentImageDataUrl: string | null = null;
+  let currentSource: 'camera' | 'upload' = 'upload';
+
+  // Gallery File Selection Handler
+  fileGalleryInput?.addEventListener('change', (e) => {
+    const file = (e.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      currentImageDataUrl = event.target?.result as string;
+      currentSource = 'upload';
+      showPreview();
+    };
+    reader.readAsDataURL(file);
+  });
+
+  // Camera Fallback Input (Mobile browser direct capture)
+  cameraFallbackInput?.addEventListener('change', (e) => {
+    const file = (e.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      currentImageDataUrl = event.target?.result as string;
+      currentSource = 'camera';
+      showPreview();
+    };
+    reader.readAsDataURL(file);
+  });
+
+  // Open Camera using getUserMedia (with mobile fallback)
+  btnCamera?.addEventListener('click', async () => {
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      try {
+        mediaStream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 960 } },
+          audio: false
+        });
+        if (cameraVideo) {
+          cameraVideo.srcObject = mediaStream;
+          cameraVideo.play();
+        }
+        cameraModal?.classList.remove('hidden');
+        methodsContainer?.classList.add('hidden');
+      } catch (err) {
+        console.warn('getUserMedia unavailable, using mobile camera capture input', err);
+        cameraFallbackInput?.click();
+      }
+    } else {
+      cameraFallbackInput?.click();
+    }
+  });
+
+  function stopCamera() {
+    if (mediaStream) {
+      mediaStream.getTracks().forEach((track) => track.stop());
+      mediaStream = null;
+    }
+    cameraModal?.classList.add('hidden');
+    methodsContainer?.classList.remove('hidden');
+  }
+
+  btnCloseCamera?.addEventListener('click', stopCamera);
+
+  // Snap photo from camera stream
+  btnSnap?.addEventListener('click', () => {
+    if (!cameraVideo || !cameraCanvas) return;
+    const w = cameraVideo.videoWidth || 640;
+    const h = cameraVideo.videoHeight || 480;
+    cameraCanvas.width = w;
+    cameraCanvas.height = h;
+
+    const ctx = cameraCanvas.getContext('2d');
+    if (ctx) {
+      ctx.drawImage(cameraVideo, 0, 0, w, h);
+      currentImageDataUrl = cameraCanvas.toDataURL('image/jpeg', 0.9);
+      currentSource = 'camera';
+      stopCamera();
+      showPreview();
+    }
+  });
+
+  function showPreview() {
+    if (!currentImageDataUrl || !previewImg || !previewPanel) return;
+    previewImg.src = currentImageDataUrl;
+    previewPanel.classList.remove('hidden');
+    methodsContainer?.classList.add('hidden');
+  }
+
+  btnDiscard?.addEventListener('click', () => {
+    currentImageDataUrl = null;
+    previewPanel?.classList.add('hidden');
+    methodsContainer?.classList.remove('hidden');
+    if (fileGalleryInput) fileGalleryInput.value = '';
+    if (cameraFallbackInput) cameraFallbackInput.value = '';
+  });
+
+  // Confirm and Transmit directly without author name or caption
+  btnConfirm?.addEventListener('click', () => {
+    if (!currentImageDataUrl) return;
+
+    if (btnConfirm) {
+      btnConfirm.innerHTML = `
+        <svg class="animate-spin -ml-1 mr-2 h-5 w-5 text-white inline" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+        </svg>
+        Transmitiendo...
+      `;
+    }
+
+    setTimeout(() => {
+      // Add photo to store anonymously (triggers BroadcastChannel event)
+      galleryStore.addPhoto({
+        url: currentImageDataUrl!,
+        source: currentSource
+      });
+
+      // Confetti celebration
+      try {
+        confetti({
+          particleCount: 50,
+          spread: 80,
+          origin: { y: 0.6 }
+        });
+      } catch {}
+
+      // Reset UI
+      currentImageDataUrl = null;
+      if (fileGalleryInput) fileGalleryInput.value = '';
+      if (cameraFallbackInput) cameraFallbackInput.value = '';
+      previewPanel?.classList.add('hidden');
+      methodsContainer?.classList.remove('hidden');
+
+      if (btnConfirm) {
+        btnConfirm.innerHTML = `
+          <span>Transmitir a la Pantalla Gigante</span>
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+          </svg>
+        `;
+      }
+
+      // Smooth scroll to feed
+      const feed = document.getElementById('photo-wall-grid');
+      feed?.scrollIntoView({ behavior: 'smooth' });
+    }, 350);
+  });
+</script>

@@ -1,0 +1,287 @@
+---
+// PhotoGallery.astro
+---
+
+<div class="w-full">
+  <!-- Bar de Título y Filtros -->
+  <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+    <div>
+      <h3 class="font-heading font-black text-2xl text-[#002855] flex items-center gap-2">
+        <span>Muro del Evento en Vivo</span>
+        <span id="gallery-count-badge" class="text-xs bg-[#00A3E0]/15 text-[#002855] px-2.5 py-1 rounded-full font-bold">
+          0 fotos
+        </span>
+      </h3>
+      <p class="text-xs sm:text-sm text-slate-500">Fotografías transmitidas en directo a la pantalla gigante</p>
+    </div>
+
+    <!-- Filtros y Opciones Rápidas -->
+    <div class="flex items-center gap-2">
+      <button 
+        id="btn-sort-recent" 
+        class="text-xs font-bold px-3 py-1.5 rounded-xl bg-[#002855] text-white shadow-sm transition-all cursor-pointer"
+      >
+        Más Recientes
+      </button>
+      <button 
+        id="btn-sort-popular" 
+        class="text-xs font-bold px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 transition-all cursor-pointer"
+      >
+        Más Populares ❤️
+      </button>
+      <button 
+        id="btn-reset-demo" 
+        class="text-[11px] font-semibold px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-500 transition-all cursor-pointer"
+        title="Restablecer fotos de prueba"
+      >
+        Restablecer
+      </button>
+    </div>
+  </div>
+
+  <!-- Grid Responsivo de Fotos (Sin nombres ni mensajes) -->
+  <div 
+    id="photo-wall-grid" 
+    class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+  >
+    <!-- Dynamic Cards Injected via JS -->
+  </div>
+
+  <!-- Estado Vacío -->
+  <div id="gallery-empty-state" class="hidden text-center py-16 bg-white rounded-3xl border border-slate-200 p-8">
+    <div class="w-16 h-16 rounded-2xl bg-sky-50 text-[#00A3E0] flex items-center justify-center mx-auto mb-4">
+      <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+      </svg>
+    </div>
+    <h4 class="font-heading font-bold text-slate-800 text-lg mb-1">Aún no hay fotos en este evento</h4>
+    <p class="text-xs text-slate-500 max-w-sm mx-auto">Sé el primero en tomar una foto con tu cámara o subirla desde tu galería para verla aquí y en la pantalla.</p>
+  </div>
+
+  <!-- Lightbox Modal para Ver Foto en Detalle (Limpio, sin datos personales) -->
+  <div id="photo-modal" class="fixed inset-0 z-50 hidden bg-black/90 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="relative max-w-4xl w-full bg-slate-900 rounded-3xl overflow-hidden border border-white/20 shadow-2xl flex flex-col">
+      <button id="btn-close-modal" class="absolute top-4 right-4 z-20 w-10 h-10 rounded-full bg-black/60 text-white hover:bg-black flex items-center justify-center cursor-pointer">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+
+      <div class="max-h-[75vh] bg-black flex items-center justify-center overflow-hidden">
+        <img id="modal-img" src="" alt="Detalle" class="w-full h-full object-contain" />
+      </div>
+
+      <div class="p-5 bg-slate-900 text-white flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl bg-[#002855] border border-white/20 flex items-center justify-center">
+            <svg viewBox="0 0 100 100" class="w-5 h-5 fill-white">
+              <rect width="100" height="100" rx="16" fill="#002855"/>
+              <path d="M22 30h56v10H22zM22 46h40v10H22zM22 62h56v10H22z" fill="#00A3E0"/>
+            </svg>
+          </div>
+          <div>
+            <h4 class="font-heading font-extrabold text-base text-white">Evento SENATI 2026</h4>
+            <span id="modal-photo-time" class="text-xs text-slate-400"></span>
+          </div>
+        </div>
+
+        <button id="modal-btn-like" class="flex items-center gap-2 px-4 py-2 rounded-2xl bg-white/10 hover:bg-pink-600/30 text-pink-400 font-bold transition-all cursor-pointer">
+          <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24">
+            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+          </svg>
+          <span id="modal-likes-count">0</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  import { galleryStore } from '../lib/store';
+  import type { PhotoItem } from '../lib/types';
+
+  const grid = document.getElementById('photo-wall-grid');
+  const emptyState = document.getElementById('gallery-empty-state');
+  const countBadge = document.getElementById('gallery-count-badge');
+  const btnSortRecent = document.getElementById('btn-sort-recent');
+  const btnSortPopular = document.getElementById('btn-sort-popular');
+  const btnResetDemo = document.getElementById('btn-reset-demo');
+
+  // Modal elements
+  const modal = document.getElementById('photo-modal');
+  const modalImg = document.getElementById('modal-img') as HTMLImageElement;
+  const modalPhotoTime = document.getElementById('modal-photo-time');
+  const modalLikesCount = document.getElementById('modal-likes-count');
+  const modalBtnLike = document.getElementById('modal-btn-like');
+  const btnCloseModal = document.getElementById('btn-close-modal');
+
+  let currentPhotos: PhotoItem[] = [];
+  let sortMode: 'recent' | 'popular' = 'recent';
+  let activeModalPhotoId: string | null = null;
+
+  function formatTime(timestamp: number) {
+    const diffSec = Math.floor((Date.now() - timestamp) / 1000);
+    if (diffSec < 60) return 'Hace unos segundos';
+    const diffMin = Math.floor(diffSec / 60);
+    if (diffMin < 60) return `Hace ${diffMin}m`;
+    const diffHours = Math.floor(diffMin / 60);
+    if (diffHours < 24) return `Hace ${diffHours}h`;
+    return new Date(timestamp).toLocaleDateString('es-PE', { day: '2-digit', month: 'short' });
+  }
+
+  function renderGallery() {
+    if (!grid) return;
+
+    currentPhotos = galleryStore.getPhotos();
+    if (sortMode === 'popular') {
+      currentPhotos.sort((a, b) => b.likes - a.likes);
+    } else {
+      currentPhotos.sort((a, b) => b.timestamp - a.timestamp);
+    }
+
+    if (countBadge) {
+      countBadge.textContent = `${currentPhotos.length} fotos`;
+    }
+
+    if (currentPhotos.length === 0) {
+      grid.classList.add('hidden');
+      emptyState?.classList.remove('hidden');
+      return;
+    }
+
+    grid.classList.remove('hidden');
+    emptyState?.classList.add('hidden');
+    grid.innerHTML = '';
+
+    currentPhotos.forEach((photo) => {
+      const isLiked = galleryStore.isPhotoLiked(photo.id);
+      const card = document.createElement('div');
+      card.className = 'group bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-slate-100 flex flex-col';
+
+      card.innerHTML = `
+        <!-- Header de la foto (Sin nombre) -->
+        <div class="p-3.5 flex items-center justify-between border-b border-slate-100">
+          <div class="flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-[#00A3E0]"></span>
+            <span class="text-xs font-bold text-[#002855]">Foto del Evento</span>
+            <span class="text-[11px] text-slate-400 font-medium">· ${formatTime(photo.timestamp)}</span>
+          </div>
+          <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${
+            photo.source === 'camera' 
+              ? 'bg-purple-100 text-[#7C3AED]' 
+              : 'bg-sky-100 text-[#00A3E0]'
+          }">
+            ${photo.source === 'camera' ? '📷 Cámara' : '🖼️ Galería'}
+          </span>
+        </div>
+
+        <!-- Imagen de la foto -->
+        <div class="relative aspect-4/3 overflow-hidden bg-slate-100 cursor-pointer">
+          <img 
+            src="${photo.url}" 
+            alt="Foto SENATI" 
+            loading="lazy"
+            class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          />
+          <div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+            <span class="bg-white/90 text-slate-900 text-xs font-bold px-3 py-1.5 rounded-full shadow-md backdrop-blur-xs flex items-center gap-1.5">
+              <svg class="w-4 h-4 text-[#00A3E0]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"/>
+              </svg>
+              Ver en grande
+            </span>
+          </div>
+        </div>
+
+        <!-- Footer con botón de Like (Sin comentario) -->
+        <div class="p-3.5 flex items-center justify-between bg-slate-50/50">
+          <button 
+            type="button" 
+            data-like-btn="${photo.id}"
+            class="flex items-center gap-2 text-xs font-bold py-1.5 px-3 rounded-full transition-all cursor-pointer ${
+              isLiked 
+                ? 'bg-pink-50 text-pink-600 border border-pink-200' 
+                : 'bg-white hover:bg-slate-100 text-slate-600 border border-slate-200'
+            }"
+          >
+            <svg class="w-4 h-4 ${isLiked ? 'fill-pink-500 text-pink-500' : 'text-slate-400'}" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+            </svg>
+            <span data-likes-counter="${photo.id}">${photo.likes}</span>
+            <span>${photo.likes === 1 ? 'Me gusta' : 'Me gustas'}</span>
+          </button>
+
+          <span class="text-[11px] font-semibold text-emerald-600 flex items-center gap-1">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+            Proyectada
+          </span>
+        </div>
+      `;
+
+      const imgWrapper = card.querySelector('.aspect-4\\/3');
+      imgWrapper?.addEventListener('click', () => {
+        openModal(photo);
+      });
+
+      const likeBtn = card.querySelector(`[data-like-btn="${photo.id}"]`);
+      likeBtn?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        galleryStore.toggleLike(photo.id);
+        renderGallery();
+      });
+
+      grid.appendChild(card);
+    });
+  }
+
+  function openModal(photo: PhotoItem) {
+    activeModalPhotoId = photo.id;
+    if (modalImg) modalImg.src = photo.url;
+    if (modalPhotoTime) modalPhotoTime.textContent = formatTime(photo.timestamp);
+    if (modalLikesCount) modalLikesCount.textContent = String(photo.likes);
+    modal?.classList.remove('hidden');
+  }
+
+  function closeModal() {
+    activeModalPhotoId = null;
+    modal?.classList.add('hidden');
+  }
+
+  btnCloseModal?.addEventListener('click', closeModal);
+  modal?.addEventListener('click', (e) => {
+    if (e.target === modal) closeModal();
+  });
+
+  modalBtnLike?.addEventListener('click', () => {
+    if (!activeModalPhotoId) return;
+    const newLikes = galleryStore.toggleLike(activeModalPhotoId);
+    if (modalLikesCount) modalLikesCount.textContent = String(newLikes);
+    renderGallery();
+  });
+
+  btnSortRecent?.addEventListener('click', () => {
+    sortMode = 'recent';
+    btnSortRecent.className = 'text-xs font-bold px-3 py-1.5 rounded-xl bg-[#002855] text-white shadow-sm transition-all cursor-pointer';
+    if (btnSortPopular) btnSortPopular.className = 'text-xs font-bold px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 transition-all cursor-pointer';
+    renderGallery();
+  });
+
+  btnSortPopular?.addEventListener('click', () => {
+    sortMode = 'popular';
+    if (btnSortPopular) btnSortPopular.className = 'text-xs font-bold px-3 py-1.5 rounded-xl bg-[#002855] text-white shadow-sm transition-all cursor-pointer';
+    if (btnSortRecent) btnSortRecent.className = 'text-xs font-bold px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 transition-all cursor-pointer';
+    renderGallery();
+  });
+
+  btnResetDemo?.addEventListener('click', () => {
+    if (confirm('¿Restablecer fotos a la demostración inicial?')) {
+      galleryStore.resetToDefaults();
+    }
+  });
+
+  galleryStore.subscribe(() => {
+    renderGallery();
+  });
+
+  renderGallery();
+</script>

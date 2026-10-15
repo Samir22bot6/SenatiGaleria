@@ -1,0 +1,396 @@
+---
+// LoginForm.astro
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+---
+
+<div class="w-full max-w-md mx-auto" data-base-url={base}>
+  <!-- Card principal redondeada con estilo SENATI -->
+  <div class="bg-white rounded-3xl shadow-xl shadow-slate-200/60 border border-slate-100 p-8 sm:p-10 relative overflow-hidden">
+    <!-- Barra decorativa superior -->
+    <div class="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-[#002855] via-[#00A3E0] to-[#7C3AED]"></div>
+
+    <!-- Header institucional -->
+    <div class="text-center mb-6">
+      <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-[#002855] shadow-lg shadow-blue-950/20 mb-3 transform hover:scale-105 transition-transform">
+        <svg viewBox="0 0 100 100" class="w-10 h-10 fill-white">
+          <rect width="100" height="100" rx="20" fill="#002855"/>
+          <path d="M20 28h60v12H20zM20 44h45v12H20zM20 60h60v12H20z" fill="#00A3E0"/>
+          <circle cx="75" cy="50" r="6" fill="#FFFFFF"/>
+        </svg>
+      </div>
+      <h2 class="text-2xl font-extrabold text-[#002855] font-heading tracking-tight">SENATI Event Live</h2>
+      <p class="text-xs sm:text-sm text-slate-500 mt-1 font-medium">Ingresa para subir tus fotos a la pantalla gigante del evento</p>
+    </div>
+
+    <!-- Formulario interactivo -->
+    <form id="senati-login-form" class="space-y-4" novalidate>
+      <!-- 1. Campo de Texto: Ingresa tu nombre -->
+      <div>
+        <label for="user-name" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+          Ingresa tu nombre: <span class="text-red-500">*</span>
+        </label>
+        <div class="relative">
+          <input 
+            type="text" 
+            id="user-name" 
+            name="name" 
+            required 
+            placeholder="Ej: Carlos Mendoza" 
+            class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-slate-900 placeholder-slate-400 font-medium text-sm focus:outline-none focus:ring-2 focus:ring-[#00A3E0] focus:border-transparent transition-all shadow-inner"
+          />
+          <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- AVISO DESTACADO / RECALCADO DE CONTACTO OBLIGATORIO (1 DE 2) -->
+      <div class="p-3.5 rounded-2xl bg-sky-50 border border-sky-200 text-[#002855] text-xs">
+        <div class="flex items-start gap-2">
+          <svg class="w-5 h-5 text-[#00A3E0] shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          <div>
+            <p class="font-bold text-[12px] text-[#002855]">
+              Requisito de contacto obligatorio:
+            </p>
+            <p class="text-slate-600 mt-0.5 leading-snug">
+              Debes registrar tu <strong>Correo electrónico</strong> o tu <strong>Celular</strong>. <span class="text-[#00A3E0] font-bold">¡Solo es necesario uno de los dos!</span>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. CASILLA ARRIBA: Correo Electrónico (si no quieren vincular con Google) -->
+      <div>
+        <div class="flex items-center justify-between mb-1.5">
+          <label for="user-email" class="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+            Ingresa tu Correo:
+          </label>
+          <span class="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-bold">Opción A</span>
+        </div>
+        <div class="relative">
+          <input 
+            type="email" 
+            id="user-email" 
+            name="email" 
+            placeholder="ejemplo@senati.pe" 
+            class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-slate-900 placeholder-slate-400 font-medium text-sm focus:outline-none focus:ring-2 focus:ring-[#00A3E0] focus:border-transparent transition-all shadow-inner"
+          />
+          <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Botón de Autenticación con Google Real -->
+      <div class="pt-1">
+        <button 
+          type="button" 
+          id="btn-google-login"
+          class="w-full flex items-center justify-center gap-3 py-3 px-4 bg-white hover:bg-slate-50 border-2 border-slate-200 hover:border-[#00A3E0] rounded-2xl text-slate-700 font-semibold text-sm shadow-sm hover:shadow transition-all group cursor-pointer"
+        >
+          <!-- Logo oficial de Google -->
+          <svg class="w-5 h-5" viewBox="0 0 24 24">
+            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+          </svg>
+          <span class="group-hover:text-[#002855]">Continue with Google</span>
+        </button>
+      </div>
+
+      <!-- 4. Separador: "ó" -->
+      <div class="relative flex items-center justify-center my-2">
+        <div class="border-t border-slate-200 w-full"></div>
+        <span class="bg-white px-3 text-xs font-bold uppercase text-slate-400">ó</span>
+        <div class="border-t border-slate-200 w-full"></div>
+      </div>
+
+      <!-- 5. Campo Teléfono: Ingresa tu celular -->
+      <div>
+        <div class="flex items-center justify-between mb-1.5">
+          <label for="user-phone" class="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+            Ingresa tu Celular:
+          </label>
+          <span class="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-bold">Opción B</span>
+        </div>
+        <div class="relative">
+          <input 
+            type="tel" 
+            id="user-phone" 
+            name="phone" 
+            placeholder="987 654 321" 
+            class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-slate-900 placeholder-slate-400 font-medium text-sm focus:outline-none focus:ring-2 focus:ring-[#00A3E0] focus:border-transparent transition-all shadow-inner"
+          />
+          <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- 6. Aceptación de Términos -->
+      <div class="pt-1">
+        <label class="flex items-start gap-3 cursor-pointer select-none group">
+          <div class="relative flex items-center pt-0.5">
+            <input 
+              type="checkbox" 
+              id="user-consent" 
+              name="consent" 
+              required
+              class="w-5 h-5 rounded-lg border-2 border-slate-300 text-[#00A3E0] focus:ring-[#00A3E0] cursor-pointer transition-colors checked:border-[#00A3E0] checked:bg-[#00A3E0]"
+            />
+          </div>
+          <span class="text-xs text-slate-600 font-medium leading-relaxed group-hover:text-slate-800">
+            Acepto el <strong class="text-[#002855]">tratamiento de datos</strong> y autorizo la proyección de mis fotografías.
+          </span>
+        </label>
+      </div>
+
+      <!-- Mensaje de error/validación -->
+      <div id="login-error-msg" class="hidden p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-bold text-center"></div>
+
+      <!-- 7. Botón Principal: 3D / Bubble celeste redondeado "Enter" -->
+      <div class="pt-2">
+        <button 
+          type="submit" 
+          id="btn-login-submit"
+          class="w-full btn-bubble-senati text-white font-heading font-black text-lg py-3.5 px-6 rounded-2xl uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer transition-all shadow-lg"
+        >
+          <span>Enter</span>
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+          </svg>
+        </button>
+      </div>
+    </form>
+
+    <!-- Modal para configurar Supabase si no está en .env -->
+    <div id="supabase-config-modal" class="hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4">
+      <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+          <div class="flex items-center gap-2">
+            <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
+            <h3 class="font-heading font-bold text-base text-[#002855]">Configuración Google OAuth / Supabase</h3>
+          </div>
+          <button id="btn-close-config-modal" class="text-slate-400 hover:text-slate-600 text-sm font-bold">✕</button>
+        </div>
+        <p class="text-xs text-slate-600 mt-3 leading-relaxed">
+          Para que el botón <strong>Continue with Google</strong> redirija a Google de forma real, puedes definir tus llaves en el archivo <code class="bg-slate-100 px-1 py-0.5 rounded text-slate-800 font-mono text-[11px]">.env</code> o ingresarlas aquí:
+        </p>
+        <div class="space-y-3 mt-4">
+          <div>
+            <label class="block text-[11px] font-bold text-slate-700 mb-1">SUPABASE URL:</label>
+            <input type="text" id="input-supabase-url" placeholder="https://tu-proyecto.supabase.co" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono" />
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold text-slate-700 mb-1">SUPABASE ANON KEY:</label>
+            <input type="password" id="input-supabase-key" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono" />
+          </div>
+        </div>
+        <div class="mt-5 flex items-center justify-end gap-2">
+          <button id="btn-save-supabase-config" class="btn-bubble-senati text-white text-xs font-bold py-2.5 px-4 rounded-xl">
+            Guardar y Conectar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-6 text-center border-t border-slate-100 pt-4">
+      <a href={`${base}/presentacion`} class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-400 hover:text-[#002855] transition-colors">
+        <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+        <span>¿Eres presentador? Ver pantalla de proyección</span>
+      </a>
+    </div>
+  </div>
+</div>
+
+<script>
+  import { galleryStore } from '../lib/store';
+  import { getSupabase, getSupabaseConfig } from '../lib/supabase';
+
+  const form = document.getElementById('senati-login-form') as HTMLFormElement;
+  const nameInput = document.getElementById('user-name') as HTMLInputElement;
+  const emailInput = document.getElementById('user-email') as HTMLInputElement;
+  const phoneInput = document.getElementById('user-phone') as HTMLInputElement;
+  const consentCheckbox = document.getElementById('user-consent') as HTMLInputElement;
+  const errorMsg = document.getElementById('login-error-msg') as HTMLDivElement;
+  const googleBtn = document.getElementById('btn-google-login') as HTMLButtonElement;
+
+  // Supabase config modal elements
+  const configModal = document.getElementById('supabase-config-modal');
+  const btnCloseConfig = document.getElementById('btn-close-config-modal');
+  const btnSaveConfig = document.getElementById('btn-save-supabase-config');
+  const inputUrl = document.getElementById('input-supabase-url') as HTMLInputElement;
+  const inputKey = document.getElementById('input-supabase-key') as HTMLInputElement;
+
+  // Pre-fill existing session
+  const existing = galleryStore.getSession();
+  if (existing) {
+    if (nameInput) nameInput.value = existing.name || '';
+    if (emailInput) emailInput.value = existing.email || '';
+    if (phoneInput) phoneInput.value = existing.phone || '';
+    if (consentCheckbox) consentCheckbox.checked = existing.dataConsent || false;
+  }
+
+  function showError(msg: string) {
+    if (!errorMsg) return;
+    errorMsg.textContent = msg;
+    errorMsg.classList.remove('hidden');
+    setTimeout(() => {
+      errorMsg.classList.add('hidden');
+    }, 5000);
+  }
+
+  // Handle Form Submit
+  form?.addEventListener('submit', (e) => {
+    e.preventDefault();
+
+    const name = nameInput?.value.trim();
+    const email = emailInput?.value.trim();
+    const phone = phoneInput?.value.trim();
+    const hasConsent = consentCheckbox?.checked;
+
+    if (!name || name.length < 2) {
+      showError('Por favor ingresa tu nombre completo.');
+      nameInput?.focus();
+      return;
+    }
+
+    // OBLIGATORIO: CORREO O CELULAR (Solo es necesario 1 de los 2)
+    if (!email && !phone) {
+      showError('⚠️ Obligatorio: Debes ingresar tu Correo electrónico O tu Celular (solo se requiere 1 de los 2).');
+      if (emailInput) emailInput.focus();
+      return;
+    }
+
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      showError('El correo ingresado no tiene un formato válido.');
+      emailInput?.focus();
+      return;
+    }
+
+    if (phone && phone.replace(/\D/g, '').length < 8) {
+      showError('El número de celular debe tener al menos 8 o 9 dígitos.');
+      phoneInput?.focus();
+      return;
+    }
+
+    if (!hasConsent) {
+      showError('Debes aceptar el tratamiento de datos para continuar.');
+      consentCheckbox?.focus();
+      return;
+    }
+
+    // Save session
+    galleryStore.setSession({
+      name,
+      email: email || '',
+      phone: phone || '',
+      dataConsent: true,
+      isLoggedIn: true,
+      avatar: `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(name)}`
+    });
+
+    const container = document.querySelector('[data-base-url]') as HTMLElement;
+    const baseUrl = container?.dataset.baseUrl || '';
+
+    const submitBtn = document.getElementById('btn-login-submit');
+    if (submitBtn) {
+      submitBtn.innerHTML = `
+        <svg class="animate-spin -ml-1 mr-2 h-5 w-5 text-white inline" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+        </svg>
+        Entrando...
+      `;
+    }
+
+    setTimeout(() => {
+      window.location.href = baseUrl + '/galeria';
+    }, 400);
+  });
+
+  // Handle Google OAuth
+  googleBtn?.addEventListener('click', async () => {
+    const supabase = getSupabase();
+    const config = getSupabaseConfig();
+    const container = document.querySelector('[data-base-url]') as HTMLElement;
+    const baseUrl = container?.dataset.baseUrl || '';
+
+    if (config.isConfigured && supabase) {
+      try {
+        if (googleBtn) {
+          googleBtn.innerHTML = `
+            <svg class="animate-spin h-5 w-5 text-[#002855] inline" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+            </svg>
+            <span>Redirigiendo a Google...</span>
+          `;
+        }
+
+        const { data, error } = await supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: {
+            redirectTo: window.location.origin + baseUrl + '/galeria',
+            queryParams: {
+              access_type: 'offline',
+              prompt: 'consent'
+            }
+          }
+        });
+        if (error) throw error;
+      } catch (err: any) {
+        showError('Error en Google OAuth: ' + (err.message || 'Verifica la configuración de Supabase'));
+      }
+    } else {
+      // Abre el modal para que el usuario pueda colocar sus credenciales reales
+      if (inputUrl) inputUrl.value = localStorage.getItem('senati_supabase_url') || '';
+      if (inputKey) inputKey.value = localStorage.getItem('senati_supabase_anon_key') || '';
+      configModal?.classList.remove('hidden');
+    }
+  });
+
+  btnCloseConfig?.addEventListener('click', () => {
+    configModal?.classList.add('hidden');
+  });
+
+  btnSaveConfig?.addEventListener('click', async () => {
+    const url = inputUrl?.value.trim();
+    const key = inputKey?.value.trim();
+    const container = document.querySelector('[data-base-url]') as HTMLElement;
+    const baseUrl = container?.dataset.baseUrl || '';
+
+    if (!url || !key) {
+      alert('Por favor ingresa la URL y Anon Key de tu proyecto Supabase.');
+      return;
+    }
+
+    localStorage.setItem('senati_supabase_url', url);
+    localStorage.setItem('senati_supabase_anon_key', key);
+    configModal?.classList.add('hidden');
+
+    // Trigger OAuth immediately
+    const supabase = getSupabase();
+    if (supabase) {
+      try {
+        await supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: {
+            redirectTo: window.location.origin + baseUrl + '/galeria'
+          }
+        });
+      } catch (err: any) {
+        showError('Error: ' + err.message);
+      }
+    }
+  });
+</script>

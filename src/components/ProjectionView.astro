@@ -1,0 +1,504 @@
+---
+// ProjectionView.astro
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+---
+
+<div id="projection-container" data-base-url={base} class="relative w-full h-screen bg-[#001736] text-white flex flex-col overflow-hidden select-none">
+  <!-- Top Background Ambient Glow -->
+  <div class="absolute -top-40 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-gradient-to-b from-[#00A3E0]/20 via-[#7C3AED]/15 to-transparent blur-3xl pointer-events-none"></div>
+
+  <!-- Header Superior de la Proyección -->
+  <header class="relative z-30 px-6 py-3.5 flex items-center justify-between border-b border-white/10 bg-[#002855]/80 backdrop-blur-md">
+    <div class="flex items-center gap-4">
+      <div class="w-11 h-11 rounded-2xl bg-white p-2 flex items-center justify-center shadow-lg">
+        <svg viewBox="0 0 100 100" class="w-full h-full fill-[#002855]">
+          <rect width="100" height="100" rx="16" fill="#002855"/>
+          <path d="M22 30h56v10H22zM22 46h40v10H22zM22 62h56v10H22z" fill="#00A3E0"/>
+          <circle cx="72" cy="51" r="5" fill="#FFFFFF"/>
+        </svg>
+      </div>
+      <div>
+        <div class="flex items-center gap-3">
+          <h1 class="font-heading font-black text-2xl tracking-tight text-white">SENATI LIVE GALLERY</h1>
+          <span class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-xs font-bold bg-red-500/20 text-red-400 border border-red-500/30">
+            <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+            EN VIVO
+          </span>
+        </div>
+        <p class="text-xs text-[#00A3E0] font-medium tracking-wide">Transmisión oficial del evento en pantalla gigante</p>
+      </div>
+    </div>
+
+    <!-- Barra de Controles Rápidos -->
+    <div class="flex items-center gap-3">
+      <!-- Contador de Fotos -->
+      <div class="hidden sm:flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-white/5 border border-white/10 text-xs font-semibold text-slate-300">
+        <span class="text-[#00A3E0] font-bold" id="photo-counter-current">1</span>
+        <span>/</span>
+        <span id="photo-counter-total">5</span>
+        <span>fotos</span>
+      </div>
+
+      <!-- Slideshow Control -->
+      <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10">
+        <button id="btn-toggle-slideshow" class="flex items-center gap-2 text-xs font-bold text-white hover:text-[#00A3E0] transition-colors cursor-pointer" title="Pausar o reanudar carrusel automático">
+          <svg id="icon-slideshow-play" class="w-4 h-4 hidden text-emerald-400" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M8 5v14l11-7z"/>
+          </svg>
+          <svg id="icon-slideshow-pause" class="w-4 h-4 text-[#00A3E0]" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
+          </svg>
+          <span id="label-slideshow-state">Auto: 5s</span>
+        </button>
+
+        <select id="select-slideshow-speed" class="bg-black/30 border border-white/10 rounded-lg text-xs text-slate-300 px-2 py-0.5 focus:outline-none focus:border-[#00A3E0]">
+          <option value="3000">3s</option>
+          <option value="5000" selected>5s</option>
+          <option value="8000">8s</option>
+          <option value="12000">12s</option>
+        </select>
+      </div>
+
+      <!-- Botón Fullscreen -->
+      <button id="btn-fullscreen" class="p-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 text-white transition-all cursor-pointer" title="Pantalla completa (Tecla F)">
+        <svg id="icon-expand" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-5h-4m4 0v4m0-4l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/>
+        </svg>
+        <svg id="icon-compress" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+
+      <!-- Salir o Ir a Galería -->
+      <a href={`${base}/galeria`} class="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white transition-all text-xs font-semibold" title="Ir al panel de subida">
+        Subir Foto
+      </a>
+    </div>
+  </header>
+
+  <!-- 1. Carrusel Superior de Miniaturas (Thumbnail Strip limpio, sin nombres) -->
+  <div class="relative z-20 px-6 py-2.5 bg-[#001D42]/90 border-b border-white/10">
+    <div class="flex items-center gap-3">
+      <span class="text-[11px] font-bold uppercase tracking-wider text-[#00A3E0] shrink-0 pl-1">
+        Tira en vivo:
+      </span>
+      <div 
+        id="thumbnail-strip" 
+        class="flex items-center gap-3 overflow-x-auto scroll-smooth py-1 px-1 no-scrollbar w-full"
+      >
+        <!-- Dynamic Thumbnails Rendered by JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. Visor Principal (Center Display) y 3. Controles de Navegación -->
+  <div class="relative flex-1 flex items-center justify-center p-4 md:p-8 overflow-hidden">
+    <!-- Flecha Gigante Izquierda < -->
+    <button 
+      id="btn-nav-prev" 
+      class="absolute left-6 md:left-10 z-30 w-16 h-16 md:w-20 md:h-20 rounded-full bg-[#002855]/70 hover:bg-[#00A3E0] backdrop-blur-md border border-white/20 text-white flex items-center justify-center shadow-2xl transition-all duration-200 hover:scale-110 active:scale-95 group cursor-pointer"
+      title="Foto anterior (Flecha Izquierda)"
+    >
+      <svg class="w-8 h-8 md:w-10 md:h-10 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 19l-7-7 7-7"/>
+      </svg>
+    </button>
+
+    <!-- Flecha Gigante Derecha > -->
+    <button 
+      id="btn-nav-next" 
+      class="absolute right-6 md:right-10 z-30 w-16 h-16 md:w-20 md:h-20 rounded-full bg-[#002855]/70 hover:bg-[#00A3E0] backdrop-blur-md border border-white/20 text-white flex items-center justify-center shadow-2xl transition-all duration-200 hover:scale-110 active:scale-95 group cursor-pointer"
+      title="Siguiente foto (Flecha Derecha)"
+    >
+      <svg class="w-8 h-8 md:w-10 md:h-10 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M9 5l7 7-7 7"/>
+      </svg>
+    </button>
+
+    <!-- Marco Central Gigante de Alta Resolución (Sin nombres ni mensajes) -->
+    <div class="relative w-full max-w-5xl h-full max-h-[76vh] rounded-3xl overflow-hidden shadow-[0_20px_50px_rgba(0,40,85,0.7)] border-2 border-white/15 bg-black flex items-center justify-center group">
+      <!-- Imagen Principal -->
+      <img 
+        id="main-display-image" 
+        src="" 
+        alt="Fotografía SENATI en pantalla" 
+        class="w-full h-full object-contain transition-all duration-500 transform scale-100"
+      />
+
+      <!-- Overlay Limpio Institucional: Sin autor ni mensaje -->
+      <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent p-6 md:p-8 flex items-end justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-[#002855] border border-white/20 flex items-center justify-center shadow-md">
+            <svg viewBox="0 0 100 100" class="w-6 h-6 fill-white">
+              <rect width="100" height="100" rx="16" fill="#002855"/>
+              <path d="M22 30h56v10H22zM22 46h40v10H22zM22 62h56v10H22z" fill="#00A3E0"/>
+            </svg>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="font-heading font-extrabold text-lg text-white">Evento Oficial SENATI</span>
+              <span class="text-[10px] bg-[#00A3E0] text-white px-2 py-0.5 rounded font-bold uppercase tracking-wider">En Vivo</span>
+            </div>
+            <span id="main-photo-time" class="text-xs text-slate-300"></span>
+          </div>
+        </div>
+
+        <!-- Indicador de Likes -->
+        <div class="flex items-center gap-2 px-4 py-2 rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 text-pink-400 font-bold text-base md:text-lg">
+          <svg class="w-6 h-6 fill-current animate-bounce" viewBox="0 0 24 24">
+            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+          </svg>
+          <span id="main-photo-likes">0</span>
+          <span class="text-xs text-slate-300 font-normal">likes</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. Esquina Inferior Derecha: Código QR Grande en Vivo con Selector de Red LAN -->
+    <div class="fixed bottom-6 right-6 z-40 bg-white/95 backdrop-blur-md rounded-3xl p-4 shadow-2xl border-4 border-[#00A3E0] flex flex-col items-center group transition-all duration-200 max-w-[230px]">
+      <div class="relative w-36 h-36 bg-white rounded-xl p-1 flex items-center justify-center">
+        <canvas id="qr-canvas" class="w-full h-full cursor-pointer" title="Clic para copiar enlace"></canvas>
+      </div>
+
+      <div class="mt-2 text-center w-full">
+        <span class="inline-block bg-[#002855] text-white text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full tracking-wider mb-1">
+          ¡Escanea y Sube tu Foto!
+        </span>
+        <p class="text-[11px] font-bold text-slate-800 leading-tight">
+          Apunta con tu celular
+        </p>
+
+        <!-- Selector de IP para que los celulares en la misma Wi-Fi puedan abrirlo -->
+        <div class="mt-2 pt-2 border-t border-slate-200 text-left">
+          <label class="block text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-1">URL del QR:</label>
+          <input 
+            type="text" 
+            id="input-qr-url" 
+            class="w-full text-[10px] font-mono px-2 py-1 bg-slate-100 border border-slate-200 rounded text-slate-800"
+            title="Puedes cambiar la IP o dominio si proyectas desde otra red"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notificación para Nuevas Fotos en Vivo (Sin nombres) -->
+  <div id="live-toast" class="fixed top-24 left-1/2 -translate-x-1/2 z-50 transform -translate-y-20 opacity-0 pointer-events-none transition-all duration-500 bg-[#7C3AED] text-white px-6 py-3.5 rounded-2xl shadow-2xl flex items-center gap-3 border border-purple-400/40">
+    <div class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
+      <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+      </svg>
+    </div>
+    <div>
+      <p class="text-xs font-black uppercase tracking-wider text-purple-200">¡Nueva foto recibida!</p>
+      <p class="text-sm font-bold text-white">Transmitiendo a la pantalla gigante...</p>
+    </div>
+  </div>
+</div>
+
+<script>
+  import QRCode from 'qrcode';
+  import confetti from 'canvas-confetti';
+  import { galleryStore } from '../lib/store';
+  import type { PhotoItem } from '../lib/types';
+
+  let photos: PhotoItem[] = [];
+  let currentIndex = 0;
+  let slideshowTimer: any = null;
+  let isSlideshowActive = true;
+  let slideshowInterval = 5000;
+
+  // DOM Elements
+  const container = document.getElementById('projection-container');
+  const strip = document.getElementById('thumbnail-strip');
+  const mainImage = document.getElementById('main-display-image') as HTMLImageElement;
+  const photoTime = document.getElementById('main-photo-time');
+  const photoLikes = document.getElementById('main-photo-likes');
+  const counterCurrent = document.getElementById('photo-counter-current');
+  const counterTotal = document.getElementById('photo-counter-total');
+  const qrCanvas = document.getElementById('qr-canvas') as HTMLCanvasElement;
+  const qrUrlInput = document.getElementById('input-qr-url') as HTMLInputElement;
+
+  const btnPrev = document.getElementById('btn-nav-prev');
+  const btnNext = document.getElementById('btn-nav-next');
+  const btnSlideshow = document.getElementById('btn-toggle-slideshow');
+  const iconPlay = document.getElementById('icon-slideshow-play');
+  const iconPause = document.getElementById('icon-slideshow-pause');
+  const labelState = document.getElementById('label-slideshow-state');
+  const selectSpeed = document.getElementById('select-slideshow-speed') as HTMLSelectElement;
+  const btnFullscreen = document.getElementById('btn-fullscreen');
+  const iconExpand = document.getElementById('icon-expand');
+  const iconCompress = document.getElementById('icon-compress');
+  const liveToast = document.getElementById('live-toast');
+
+  function formatRelativeTime(timestamp: number) {
+    const diffSec = Math.floor((Date.now() - timestamp) / 1000);
+    if (diffSec < 60) return 'Hace unos segundos';
+    const diffMin = Math.floor(diffSec / 60);
+    if (diffMin < 60) return `Hace ${diffMin} min`;
+    const diffHours = Math.floor(diffMin / 60);
+    return `Hace ${diffHours} h`;
+  }
+
+  // Determine the best URL for the QR code
+  // If user is accessing via localhost, use local Wi-Fi IP so phones in the room can connect!
+  function getBestMobileUrl(): string {
+    const saved = localStorage.getItem('senati_qr_custom_url');
+    if (saved) return saved;
+
+    const hostname = window.location.hostname;
+    const container = document.getElementById('projection-container');
+    const baseUrl = container?.dataset.baseUrl || '';
+
+    // Si está en localhost, sugerir la IP de red local
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+      const port = window.location.port ? `:${window.location.port}` : '';
+      return `http://192.168.1.222${port}${baseUrl}/galeria`;
+    }
+    // En GitHub Pages o dominio público (ej: https://Samir22bot6.github.io/SenatiGaleria/galeria)
+    return `${window.location.origin}${baseUrl}/galeria`;
+  }
+
+  function generateLiveQR(targetUrl: string) {
+    if (!qrCanvas) return;
+    QRCode.toCanvas(qrCanvas, targetUrl, {
+      width: 140,
+      margin: 1,
+      color: {
+        dark: '#002855',
+        light: '#FFFFFF'
+      }
+    }, (error) => {
+      if (error) console.error('Error generando QR', error);
+    });
+
+    if (qrUrlInput) {
+      qrUrlInput.value = targetUrl;
+    }
+  }
+
+  qrUrlInput?.addEventListener('change', (e) => {
+    const newUrl = (e.target as HTMLInputElement).value.trim();
+    if (newUrl) {
+      localStorage.setItem('senati_qr_custom_url', newUrl);
+      generateLiveQR(newUrl);
+    }
+  });
+
+  qrCanvas?.addEventListener('click', () => {
+    const url = qrUrlInput?.value || getBestMobileUrl();
+    navigator.clipboard?.writeText(url);
+    alert('Enlace copiado al portapapeles:\n' + url);
+  });
+
+  // Render Thumbnails in Strip (Clean, without text/names)
+  function renderThumbnails() {
+    if (!strip) return;
+    strip.innerHTML = '';
+
+    photos.forEach((photo, idx) => {
+      const isSelected = idx === currentIndex;
+      const thumbBtn = document.createElement('button');
+      thumbBtn.className = `relative shrink-0 w-20 h-14 md:w-24 md:h-16 rounded-xl overflow-hidden cursor-pointer transition-all duration-200 transform ${
+        isSelected 
+          ? 'ring-4 ring-[#7C3AED] scale-105 shadow-lg shadow-purple-500/40 z-10' 
+          : 'opacity-65 hover:opacity-100 hover:scale-100 ring-1 ring-white/20'
+      }`;
+
+      thumbBtn.innerHTML = `
+        <img src="${photo.url}" alt="Foto" class="w-full h-full object-cover pointer-events-none" />
+      `;
+
+      thumbBtn.addEventListener('click', () => {
+        selectPhoto(idx);
+        restartSlideshow();
+      });
+
+      strip.appendChild(thumbBtn);
+    });
+
+    const activeEl = strip.children[currentIndex] as HTMLElement;
+    if (activeEl) {
+      activeEl.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    }
+  }
+
+  // Display Selected Photo (No names or captions)
+  function selectPhoto(index: number) {
+    if (photos.length === 0) return;
+    if (index < 0) index = photos.length - 1;
+    if (index >= photos.length) index = 0;
+
+    currentIndex = index;
+    const current = photos[currentIndex];
+
+    if (mainImage) {
+      mainImage.classList.add('opacity-0', 'scale-95');
+      setTimeout(() => {
+        mainImage.src = current.url;
+        mainImage.classList.remove('opacity-0', 'scale-95');
+      }, 150);
+    }
+
+    if (photoTime) photoTime.textContent = formatRelativeTime(current.timestamp);
+    if (photoLikes) photoLikes.textContent = String(current.likes || 0);
+
+    if (counterCurrent) counterCurrent.textContent = String(currentIndex + 1);
+    if (counterTotal) counterTotal.textContent = String(photos.length);
+
+    renderThumbnails();
+  }
+
+  // Slideshow Logic
+  function startSlideshow() {
+    stopSlideshow();
+    if (!isSlideshowActive) return;
+    slideshowTimer = setInterval(() => {
+      selectPhoto(currentIndex + 1);
+    }, slideshowInterval);
+  }
+
+  function stopSlideshow() {
+    if (slideshowTimer) {
+      clearInterval(slideshowTimer);
+      slideshowTimer = null;
+    }
+  }
+
+  function restartSlideshow() {
+    if (isSlideshowActive) {
+      startSlideshow();
+    }
+  }
+
+  function updateSlideshowUI() {
+    if (isSlideshowActive) {
+      iconPlay?.classList.add('hidden');
+      iconPause?.classList.remove('hidden');
+      if (labelState) labelState.textContent = `Auto: ${slideshowInterval / 1000}s`;
+    } else {
+      iconPlay?.classList.remove('hidden');
+      iconPause?.classList.add('hidden');
+      if (labelState) labelState.textContent = 'Pausado';
+    }
+  }
+
+  // Navigation handlers
+  btnPrev?.addEventListener('click', () => {
+    selectPhoto(currentIndex - 1);
+    restartSlideshow();
+  });
+
+  btnNext?.addEventListener('click', () => {
+    selectPhoto(currentIndex + 1);
+    restartSlideshow();
+  });
+
+  btnSlideshow?.addEventListener('click', () => {
+    isSlideshowActive = !isSlideshowActive;
+    updateSlideshowUI();
+    if (isSlideshowActive) {
+      startSlideshow();
+    } else {
+      stopSlideshow();
+    }
+  });
+
+  selectSpeed?.addEventListener('change', (e) => {
+    slideshowInterval = Number((e.target as HTMLSelectElement).value);
+    updateSlideshowUI();
+    if (isSlideshowActive) {
+      startSlideshow();
+    }
+  });
+
+  // Fullscreen support
+  btnFullscreen?.addEventListener('click', () => {
+    if (!document.fullscreenElement) {
+      container?.requestFullscreen?.();
+      iconExpand?.classList.add('hidden');
+      iconCompress?.classList.remove('hidden');
+    } else {
+      document.exitFullscreen?.();
+      iconExpand?.classList.remove('hidden');
+      iconCompress?.classList.add('hidden');
+    }
+  });
+
+  document.addEventListener('fullscreenchange', () => {
+    if (!document.fullscreenElement) {
+      iconExpand?.classList.remove('hidden');
+      iconCompress?.classList.add('hidden');
+    } else {
+      iconExpand?.classList.add('hidden');
+      iconCompress?.classList.remove('hidden');
+    }
+  });
+
+  // Keyboard navigation
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowLeft') {
+      selectPhoto(currentIndex - 1);
+      restartSlideshow();
+    } else if (e.key === 'ArrowRight') {
+      selectPhoto(currentIndex + 1);
+      restartSlideshow();
+    } else if (e.key === ' ' && e.target === document.body) {
+      e.preventDefault();
+      btnSlideshow?.click();
+    } else if (e.key.toLowerCase() === 'f') {
+      btnFullscreen?.click();
+    }
+  });
+
+  function triggerNewPhotoNotification() {
+    if (!liveToast) return;
+    liveToast.classList.remove('-translate-y-20', 'opacity-0');
+    liveToast.classList.add('translate-y-0', 'opacity-100');
+
+    try {
+      confetti({
+        particleCount: 50,
+        spread: 70,
+        origin: { y: 0.2 },
+        colors: ['#00A3E0', '#7C3AED', '#FFFFFF']
+      });
+    } catch {}
+
+    setTimeout(() => {
+      liveToast.classList.remove('translate-y-0', 'opacity-100');
+      liveToast.classList.add('-translate-y-20', 'opacity-0');
+    }, 4000);
+  }
+
+  // Initialize Store & Realtime Listener
+  function init() {
+    photos = galleryStore.getPhotos();
+    if (photos.length > 0) {
+      selectPhoto(0);
+      startSlideshow();
+    }
+    generateLiveQR(getBestMobileUrl());
+
+    // Listen to real-time additions
+    galleryStore.subscribe((event) => {
+      if (event.type === 'PHOTO_ADDED' && event.data) {
+        photos = galleryStore.getPhotos();
+        triggerNewPhotoNotification();
+        selectPhoto(0);
+        restartSlideshow();
+      } else if (event.type === 'PHOTOS_UPDATED') {
+        photos = galleryStore.getPhotos();
+        renderThumbnails();
+      } else if (event.type === 'PHOTO_LIKED') {
+        photos = galleryStore.getPhotos();
+        const cur = photos[currentIndex];
+        if (cur && photoLikes) {
+          photoLikes.textContent = String(cur.likes);
+        }
+      }
+    });
+  }
+
+  init();
+</script>

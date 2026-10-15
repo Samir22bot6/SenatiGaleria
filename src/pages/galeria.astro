@@ -1,0 +1,147 @@
+---
+import Layout from '../layouts/Layout.astro';
+import PhotoUploader from '../components/PhotoUploader.astro';
+import PhotoGallery from '../components/PhotoGallery.astro';
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+---
+
+<Layout title="Muro y Subida de Fotos | SENATI Live Gallery">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full space-y-8" data-base-url={base}>
+    <!-- Header del Usuario y Estado del Evento -->
+    <div class="bg-gradient-to-r from-[#002855] to-[#004B93] rounded-3xl p-6 sm:p-8 text-white shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative overflow-hidden">
+      <!-- Glow background -->
+      <div class="absolute -right-20 -bottom-20 w-80 h-80 rounded-full bg-[#00A3E0]/20 blur-2xl pointer-events-none"></div>
+
+      <div class="flex items-center gap-4 relative z-10">
+        <div class="relative">
+          <img 
+            id="user-badge-avatar" 
+            src="https://api.dicebear.com/7.x/bottts/svg?seed=SENATI" 
+            alt="Usuario" 
+            class="w-16 h-16 rounded-2xl bg-white/10 border-2 border-[#00A3E0] p-0.5 object-cover shadow-lg"
+          />
+          <span class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-emerald-500 border-2 border-[#002855] flex items-center justify-center">
+            <span class="w-2 h-2 rounded-full bg-white animate-pulse"></span>
+          </span>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h2 id="user-greeting" class="font-heading font-black text-2xl sm:text-3xl text-white">¡Hola, Asistente SENATI!</h2>
+          </div>
+          <p id="user-contact-info" class="text-xs sm:text-sm text-sky-200 mt-0.5">Participando en la transmisión en vivo del evento</p>
+        </div>
+      </div>
+
+      <!-- Acciones de Cabecera -->
+      <div class="flex items-center gap-3 relative z-10 w-full sm:w-auto">
+        <a 
+          href={`${base}/presentacion`} 
+          target="_blank"
+          class="flex-1 sm:flex-none btn-bubble-senati text-white text-xs sm:text-sm font-heading font-bold py-3 px-5 rounded-xl flex items-center justify-center gap-2"
+        >
+          <span class="w-2 h-2 rounded-full bg-red-400 animate-ping"></span>
+          <span>Ver Pantalla Gigante</span>
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+          </svg>
+        </a>
+
+        <button 
+          id="btn-logout" 
+          class="text-xs font-semibold px-4 py-3 rounded-xl bg-white/10 hover:bg-white/20 text-slate-200 hover:text-white transition-colors cursor-pointer border border-white/10"
+        >
+          Cambiar Usuario
+        </button>
+      </div>
+    </div>
+
+    <!-- Módulo 1: Captura y Subida de Fotos -->
+    <section>
+      <PhotoUploader />
+    </section>
+
+    <!-- Módulo 2: Muro de Fotos en Tiempo Real -->
+    <section class="pt-4">
+      <PhotoGallery />
+    </section>
+  </div>
+</Layout>
+
+<script>
+  import { galleryStore } from '../lib/store';
+  import { getSupabase } from '../lib/supabase';
+
+  const userGreeting = document.getElementById('user-greeting');
+  const userContactInfo = document.getElementById('user-contact-info');
+  const userAvatar = document.getElementById('user-badge-avatar') as HTMLImageElement;
+  const btnLogout = document.getElementById('btn-logout');
+
+  // Check if returning from Google OAuth redirect (Supabase session)
+  async function checkSupabaseAuthRedirect() {
+    const supabase = getSupabase();
+    if (!supabase) return;
+
+    try {
+      const { data: { session }, error } = await supabase.auth.getSession();
+      if (session && session.user) {
+        const metadata = session.user.user_metadata || {};
+        const googleName = metadata.full_name || metadata.name || session.user.email?.split('@')[0] || 'Asistente SENATI';
+        const googleEmail = session.user.email || '';
+        const googleAvatar = metadata.avatar_url || metadata.picture || `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(googleName)}`;
+
+        galleryStore.setSession({
+          name: googleName,
+          email: googleEmail,
+          phone: '',
+          dataConsent: true,
+          isLoggedIn: true,
+          avatar: googleAvatar
+        });
+
+        // Clean OAuth hash from browser URL without reloading
+        if (window.location.hash.includes('access_token')) {
+          window.history.replaceState({}, document.title, window.location.pathname);
+        }
+      }
+    } catch (err) {
+      console.warn('OAuth session verification:', err);
+    }
+  }
+
+  function updateUserHeader() {
+    const session = galleryStore.getSession();
+    if (session && session.isLoggedIn) {
+      if (userGreeting) userGreeting.textContent = `¡Hola, ${session.name}!`;
+      if (userContactInfo) {
+        const contact = session.email || session.phone || 'Verificado';
+        userContactInfo.textContent = `Sesión activa (${contact}) · Transmitiendo en vivo`;
+      }
+      if (userAvatar) userAvatar.src = session.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(session.name)}`;
+    } else {
+      if (userGreeting) userGreeting.textContent = '¡Hola, Asistente SENATI!';
+      if (userContactInfo) userContactInfo.textContent = 'Participando en la transmisión en vivo del evento';
+    }
+  }
+
+  btnLogout?.addEventListener('click', async () => {
+    const supabase = getSupabase();
+    if (supabase) {
+      try { await supabase.auth.signOut(); } catch {}
+    }
+    const container = document.querySelector('[data-base-url]') as HTMLElement;
+    const baseUrl = container?.dataset.baseUrl || '';
+    galleryStore.clearSession();
+    window.location.href = baseUrl + '/login';
+  });
+
+  checkSupabaseAuthRedirect().then(() => {
+    updateUserHeader();
+  });
+
+  galleryStore.subscribe((e) => {
+    if (e.type === 'SESSION_CHANGED') {
+      updateUserHeader();
+    }
+  });
+</script>

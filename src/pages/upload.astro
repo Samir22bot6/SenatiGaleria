@@ -1,0 +1,24 @@
+---
+import Layout from '../layouts/Layout.astro';
+import PhotoUploader from '../components/PhotoUploader.astro';
+import PhotoGallery from '../components/PhotoGallery.astro';
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+---
+
+<Layout title="Subir Fotos | SENATI Live Gallery">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full space-y-8">
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="font-heading font-black text-2xl text-[#002855]">Subida Rápida para el Evento</h1>
+        <p class="text-xs text-slate-500">Transmite tu foto directamente a la pantalla en vivo</p>
+      </div>
+      <a href={`${base}/presentacion`} class="btn-bubble-senati text-white text-xs font-bold py-2.5 px-4 rounded-xl">
+        Ver Pantalla
+      </a>
+    </div>
+
+    <PhotoUploader />
+    <PhotoGallery />
+  </div>
+</Layout>
