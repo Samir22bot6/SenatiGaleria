@@ -241,6 +241,26 @@ const adminPin = import.meta.env.PUBLIC_ADMIN_PIN || '2026';
         class="relative rounded-2xl overflow-hidden shadow-[0_0_70px_rgba(124,58,237,0.35),0_0_120px_rgba(0,163,224,0.18)] border border-white/15 bg-black/70 backdrop-blur-md" 
         style="aspect-ratio: 16/9;"
       >
+        <!-- Estado Vacío en Pantalla Gigante cuando no hay fotos aún -->
+        <div id="main-frame-empty" class="hidden absolute inset-0 z-20 flex flex-col items-center justify-center p-6 text-center bg-black/85 backdrop-blur-md">
+          <div class="w-20 h-20 rounded-3xl bg-gradient-to-br from-[#00A3E0]/20 to-purple-500/20 text-cyan-300 flex items-center justify-center mb-5 border border-cyan-400/30 shadow-lg shadow-cyan-500/20 animate-pulse">
+            <svg class="w-10 h-10 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+          </div>
+          <h3 class="font-heading font-black text-2xl sm:text-3xl text-white tracking-tight mb-2">
+            Esperando Fotos en Vivo
+          </h3>
+          <p class="text-xs sm:text-sm text-cyan-200/80 max-w-md leading-relaxed mb-4">
+            ¡Escanea el código QR en la esquina con tu celular para subir tus fotos o videos y verlos proyectados aquí en tiempo real!
+          </p>
+          <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-white/10 text-cyan-300 border border-white/15">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+            Listo para recibir transmisiones
+          </span>
+        </div>
+
         <!-- BADGE FOTO RECIÉN SUBIDA (Cola de relevancia) -->
         <div 
           id="badge-priority-new" 
@@ -386,6 +406,7 @@ const adminPin = import.meta.env.PUBLIC_ADMIN_PIN || '2026';
   const strip           = document.getElementById('thumbnail-strip')!;
   const mainImage       = document.getElementById('main-display-image') as HTMLImageElement;
   const mainVideo       = document.getElementById('main-display-video') as HTMLVideoElement;
+  const mainFrameEmpty  = document.getElementById('main-frame-empty');
   const transitionFlash = document.getElementById('transition-flash')!;
   const badgePriority   = document.getElementById('badge-priority-new')!;
   const photoTime       = document.getElementById('main-photo-time')!;
@@ -469,9 +490,7 @@ const adminPin = import.meta.env.PUBLIC_ADMIN_PIN || '2026';
 
     isSlideshowActive = true;
     updatePlayPauseButton();
-    if (photos.length > 0) {
-      selectPhoto(currentIndex);
-    }
+    selectPhoto(photos.length > 0 ? currentIndex : 0);
   }
 
   function lockPresentation() {
@@ -681,9 +700,16 @@ const adminPin = import.meta.env.PUBLIC_ADMIN_PIN || '2026';
     if (photos.length === 0) {
       mainImage.src = '';
       mainVideo.src = '';
+      mainImage.classList.add('hidden');
+      mainVideo.classList.add('hidden');
       badgePriority.classList.add('hidden');
+      mainFrameEmpty?.classList.remove('hidden');
+      if (counterCurrent) counterCurrent.textContent = '0';
+      if (counterTotal) counterTotal.textContent = '0';
       return;
     }
+
+    mainFrameEmpty?.classList.add('hidden');
 
     if (index < 0) index = photos.length - 1;
     if (index >= photos.length) index = 0;
@@ -898,7 +924,7 @@ const adminPin = import.meta.env.PUBLIC_ADMIN_PIN || '2026';
     // 1. Verificar si ya tiene el PIN '2026' desbloqueado
     if (isUnlocked()) {
       pinGatekeeper.classList.add('hidden', 'opacity-0', 'pointer-events-none');
-      if (photos.length > 0) selectPhoto(0);
+      selectPhoto(0);
     } else {
       pinGatekeeper.classList.remove('hidden', 'opacity-0', 'pointer-events-none');
     }

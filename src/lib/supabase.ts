@@ -41,108 +41,105 @@ export const isSupabaseConfigured = () => getSupabaseConfig().isConfigured;
 // ── Supabase DB helpers ────────────────────────────────────────────────
 
 /**
- * Toggle like on a media item in the database.
- * Uses upsert into `likes` table and updates the count on `media_uploads`.
+ * Update like count directly in media_uploads
  */
-export async function toggleLikeInDB(mediaId: string, userId: string): Promise<{ liked: boolean; newCount: number } | null> {
+export async function updateLikeCountInDB(mediaId: string, delta: number): Promise<number | null> {
   const sb = getSupabase();
   if (!sb) return null;
 
   try {
-    // Check if already liked
-    const { data: existing } = await sb
-      .from('likes')
-      .select('id')
-      .eq('media_id', mediaId)
-      .eq('user_identifier', userId)
-      .maybeSingle();
-
-    if (existing) {
-      // Unlike
-      await sb.from('likes').delete().eq('id', existing.id);
-      // Decrement count
-      await sb.rpc('decrement_likes', { row_id: mediaId });
-    } else {
-      // Like
-      await sb.from('likes').insert({ media_id: mediaId, user_identifier: userId });
-      // Increment count
-      await sb.rpc('increment_likes', { row_id: mediaId });
-    }
-
-    // Fetch updated count
-    const { data: media } = await sb
+    const { data: record } = await sb
       .from('media_uploads')
       .select('like_count')
       .eq('id', mediaId)
-      .single();
+      .maybeSingle();
 
-    return { liked: !existing, newCount: media?.like_count ?? 0 };
+    if (record) {
+      const newCount = Math.max(0, (record.like_count || 0) + delta);
+      await sb
+        .from('media_uploads')
+        .update({ like_count: newCount })
+        .eq('id', mediaId);
+      return newCount;
+    }
   } catch (err) {
-    console.warn('Supabase like toggle error:', err);
-    return null;
+    console.warn('Supabase updateLikeCountInDB error:', err);
   }
+  return null;
 }
 
 /**
- * Upload media file to Supabase Storage and insert record into media_uploads
+ * Upload media file (File or Blob) to Supabase Storage ('event-media')
+ * and insert a record into 'media_uploads' table.
  */
 export async function uploadMediaToSupabase(
-  file: File,
+  file: File | Blob,
   userId: string,
   mediaType: 'image' | 'video' = 'image',
   durationSeconds?: number
 ): Promise<{ publicUrl: string; dbId: string } | null> {
   const sb = getSupabase();
-  if (!sb) return null;
+  if (!sb) throw new Error('Supabase no está configurado');
 
-  try {
-    const ext = file.name.split('.').pop() || (mediaType === 'video' ? 'mp4' : 'jpg');
-    const filePath = `event/${Date.now()}_${Math.random().toString(36).slice(2,7)}.${ext}`;
+  const ext = (file instanceof File && file.name.includes('.'))
+    ? file.name.split('.').pop()
+    : (mediaType === 'video' ? 'webm' : 'jpg');
+  const fileName = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${ext}`;
+  const filePath = `uploads/${fileName}`;
 
-    // Upload to Storage
-    const { data: storageData, error: storageError } = await sb.storage
-      .from('event-media')
-      .upload(filePath, file, {
-        cacheControl: '3600',
-        contentType: file.type,
-        upsert: false,
-      });
+  // 1. Subir al Storage bucket 'event-media'
+  const { data: storageData, error: storageError } = await sb.storage
+    .from('event-media')
+    .upload(filePath, file, {
+      cacheControl: '3600',
+      contentType: file.type || (mediaType === 'video' ? 'video/webm' : 'image/jpeg'),
+      upsert: false,
+    });
 
-    if (storageError) throw storageError;
-
-    // Get public URL
-    const { data: urlData } = sb.storage
-      .from('event-media')
-      .getPublicUrl(filePath);
-
-    const publicUrl = urlData?.publicUrl || '';
-
-    // Insert DB record
-    const { data: dbRecord, error: dbError } = await sb
-      .from('media_uploads')
-      .insert({
-        storage_path: filePath,
-        public_url: publicUrl,
-        media_type: mediaType,
-        duration_seconds: durationSeconds,
-        uploaded_by: userId,
-        is_approved: true, // auto-approve for now
-        like_count: 0,
-      })
-      .select('id')
-      .single();
-
-    if (dbError) throw dbError;
-
-    return { publicUrl, dbId: dbRecord.id };
-  } catch (err) {
-    console.warn('Supabase upload error:', err);
-    return null;
+  if (storageError) {
+    console.error('Error al subir a Supabase Storage (event-media):', storageError);
+    throw new Error(`Storage: ${storageError.message}`);
   }
+
+  // 2. Obtener URL pública
+  const { data: urlData } = sb.storage
+    .from('event-media')
+    .getPublicUrl(filePath);
+
+  const publicUrl = urlData?.publicUrl || '';
+  if (!publicUrl) {
+    throw new Error('No se pudo obtener la URL pública de la imagen en Supabase');
+  }
+
+  // 3. Insertar fila en 'media_uploads'
+  const insertPayload: Record<string, any> = {
+    url: publicUrl,
+    media_type: mediaType,
+    user_id: userId,
+    approved: true,
+    like_count: 0
+  };
+
+  if (typeof durationSeconds === 'number') {
+    insertPayload.duration_seconds = durationSeconds;
+  }
+
+  const { data: dbRecord, error: dbError } = await sb
+    .from('media_uploads')
+    .insert(insertPayload)
+    .select('id')
+    .single();
+
+  if (dbError) {
+    console.error('Error al insertar en tabla media_uploads:', dbError);
+    throw new Error(`DB: ${dbError.message}`);
+  }
+
+  return { publicUrl, dbId: dbRecord.id };
 }
 
 /**
- * Fetch all approved media from Supabase
+ * Fetch all approved media from Supabase 'media_uploads'
  */
 export async function fetchMediaFromSupabase(): Promise<any[] | null> {
   const sb = getSupabase();
@@ -152,12 +149,12 @@ export async function fetchMediaFromSupabase(): Promise<any[] | null> {
     const { data, error } = await sb
       .from('media_uploads')
       .select('*')
-      .eq('is_approved', true)
       .order('created_at', { ascending: false })
-      .limit(100);
+      .limit(150);
 
     if (error) throw error;
-    return data;
+    // Filtrar solo las aprobadas (o que no estén desaprobadas)
+    return data ? data.filter(row => row.approved !== false) : [];
   } catch (err) {
     console.warn('Supabase fetch media error:', err);
     return null;
@@ -167,39 +164,36 @@ export async function fetchMediaFromSupabase(): Promise<any[] | null> {
 /**
  * Delete a media item from Supabase Database and Storage
  */
-export async function deleteMediaFromSupabase(mediaId: string, storagePath?: string): Promise<boolean> {
+export async function deleteMediaFromSupabase(mediaId: string): Promise<boolean> {
   const sb = getSupabase();
   if (!sb) return false;
 
   try {
-    // 1. If storage path is provided or can be found, delete file from bucket
-    if (storagePath) {
-      await sb.storage.from('event-media').remove([storagePath]);
-    } else {
-      // Look up storage path first if possible
-      const { data: record } = await sb
-        .from('media_uploads')
-        .select('storage_path')
-        .eq('id', mediaId)
-        .maybeSingle();
+    // 1. Obtener registro para borrar archivo de Storage
+    const { data: record } = await sb
+      .from('media_uploads')
+      .select('url')
+      .eq('id', mediaId)
+      .maybeSingle();
 
-      if (record?.storage_path) {
-        await sb.storage.from('event-media').remove([record.storage_path]);
+    if (record?.url && record.url.includes('/event-media/')) {
+      const parts = record.url.split('/event-media/');
+      if (parts[1]) {
+        await sb.storage.from('event-media').remove([parts[1]]);
       }
     }
 
-    // 2. Delete row from media_uploads
+    // 2. Borrar fila en media_uploads (o marcar approved = false)
     const { error } = await sb
       .from('media_uploads')
       .delete()
       .eq('id', mediaId);
 
     if (error) {
-      // Fallback: If DELETE rule is restricted, soft delete by setting is_approved = false
-      console.warn('Hard delete failed, performing soft delete (is_approved=false):', error.message);
+      console.warn('Hard delete falló, ejecutando baja lógica (approved=false):', error.message);
       await sb
         .from('media_uploads')
-        .update({ is_approved: false })
+        .update({ approved: false })
         .eq('id', mediaId);
     }
 
@@ -209,4 +203,3 @@ export async function deleteMediaFromSupabase(mediaId: string, storagePath?: str
     return false;
   }
 }
-

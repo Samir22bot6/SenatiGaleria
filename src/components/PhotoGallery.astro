@@ -30,11 +30,12 @@
         Más Populares ❤️
       </button>
       <button 
-        id="btn-reset-demo" 
-        class="text-[11px] font-semibold px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-500 transition-all cursor-pointer"
-        title="Restablecer fotos de prueba"
+        id="btn-sync-gallery" 
+        class="text-[11px] font-semibold px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 transition-all cursor-pointer flex items-center gap-1"
+        title="Actualizar fotos desde la base de datos"
       >
-        Restablecer
+        <svg class="w-3.5 h-3.5 text-[#00A3E0]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+        <span>Sincronizar</span>
       </button>
     </div>
   </div>
@@ -303,10 +304,11 @@
     renderGallery();
   });
 
-  btnResetDemo?.addEventListener('click', () => {
-    if (confirm('¿Restablecer fotos y videos a la demostración inicial?')) {
-      galleryStore.resetToDefaults();
-    }
+  const btnSyncGallery = document.getElementById('btn-sync-gallery');
+  btnSyncGallery?.addEventListener('click', async () => {
+    btnSyncGallery.classList.add('opacity-50');
+    await galleryStore.syncWithSupabase();
+    setTimeout(() => btnSyncGallery.classList.remove('opacity-50'), 600);
   });
 
   galleryStore.subscribe(() => {

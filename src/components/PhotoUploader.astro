@@ -176,6 +176,7 @@
 <script>
   import confetti from 'canvas-confetti';
   import { galleryStore } from '../lib/store';
+  import { uploadMediaToSupabase } from '../lib/supabase';
   import type { MediaType } from '../lib/types';
 
   const methodsContainer = document.getElementById('upload-methods-container');
@@ -206,6 +207,7 @@
   let recordTimer: any = null;
   let secondsRemaining = 8;
 
+  let currentFile: File | Blob | null = null;
   let currentMediaUrl: string | null = null;
   let currentMediaType: MediaType = 'image';
   let currentSource: 'camera' | 'upload' = 'upload';
@@ -215,6 +217,7 @@
   fileGalleryInput?.addEventListener('change', (e) => {
     const file = (e.target as HTMLInputElement).files?.[0];
     if (!file) return;
+    currentFile = file;
 
     const isVideo = file.type.startsWith('video/');
 
@@ -229,6 +232,7 @@
         if (duration > 8.5) {
           alert(`El video seleccionado dura ${Math.round(duration)} segundos. Por favor selecciona o recorta un clip de máximo 8 segundos.`);
           if (fileGalleryInput) fileGalleryInput.value = '';
+          currentFile = null;
           return;
         }
 
@@ -259,6 +263,7 @@
   cameraFallbackInput?.addEventListener('change', (e) => {
     const file = (e.target as HTMLInputElement).files?.[0];
     if (!file) return;
+    currentFile = file;
     const isVideo = file.type.startsWith('video/');
     const reader = new FileReader();
     reader.onload = (event) => {
@@ -317,6 +322,11 @@
     if (ctx) {
       ctx.drawImage(cameraVideo, 0, 0, w, h);
       currentMediaUrl = cameraCanvas.toDataURL('image/jpeg', 0.9);
+      cameraCanvas.toBlob((blob) => {
+        if (blob) {
+          currentFile = new File([blob], `photo_${Date.now()}.jpg`, { type: 'image/jpeg' });
+        }
+      }, 'image/jpeg', 0.9);
       currentMediaType = 'image';
       currentSource = 'camera';
       videoDuration = undefined;
@@ -351,6 +361,7 @@
 
     mediaRecorder.onstop = () => {
       const blob = new Blob(recordedChunks, { type: 'video/webm' });
+      currentFile = new File([blob], `video_${Date.now()}.webm`, { type: 'video/webm' });
       const reader = new FileReader();
       reader.onload = (e) => {
         currentMediaUrl = e.target?.result as string;
@@ -413,6 +424,7 @@
 
   btnDiscard?.addEventListener('click', () => {
     currentMediaUrl = null;
+    currentFile = null;
     previewPanel?.classList.add('hidden');
     methodsContainer?.classList.remove('hidden');
     if (previewVideo) previewVideo.pause();
@@ -420,9 +432,9 @@
     if (cameraFallbackInput) cameraFallbackInput.value = '';
   });
 
-  // Confirm and Transmit
-  btnConfirm?.addEventListener('click', () => {
-    if (!currentMediaUrl) return;
+  // Confirm and Transmit to Supabase and Gallery
+  btnConfirm?.addEventListener('click', async () => {
+    if (!currentMediaUrl && !currentFile) return;
 
     if (btnConfirm) {
       btnConfirm.innerHTML = `
@@ -430,44 +442,78 @@
           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
           <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
         </svg>
-        Transmitiendo...
+        <span>Subiendo a la nube de Supabase...</span>
+      `;
+      (btnConfirm as HTMLButtonElement).disabled = true;
+    }
+
+    const session = galleryStore.getSession();
+    const userId = session?.email || session?.phone || session?.name || 'Asistente SENATI';
+
+    let finalUrl = currentMediaUrl;
+    let finalId: string | undefined = undefined;
+
+    // 1. Subir archivo a Supabase Storage y registrar en la BD
+    if (currentFile) {
+      try {
+        const uploadResult = await uploadMediaToSupabase(
+          currentFile,
+          userId,
+          currentMediaType,
+          videoDuration
+        );
+
+        if (uploadResult && uploadResult.publicUrl) {
+          finalUrl = uploadResult.publicUrl;
+          finalId = uploadResult.dbId;
+        }
+      } catch (err: any) {
+        console.warn('Advertencia durante subida a Supabase:', err);
+        // Si falló la subida remota (por falta de bucket o políticas RLS en Supabase),
+        // guardamos la foto localmente para no frustrar al usuario, pero le avisamos.
+        if (err?.message?.includes('Bucket not found') || err?.message?.includes('row-level security') || err?.message?.includes('Storage:')) {
+          alert('⚠️ Aviso: La foto se guardó localmente. Para que todos los dispositivos la vean en la nube, debes crear el bucket "event-media" y habilitar las políticas en Supabase SQL Editor.');
+        }
+      }
+    }
+
+    // 2. Agregar a la tienda local (y propagar por realtime a la pantalla gigante)
+    galleryStore.addPhoto({
+      id: finalId,
+      url: finalUrl!,
+      mediaType: currentMediaType,
+      durationSeconds: videoDuration,
+      source: currentSource
+    });
+
+    try {
+      confetti({
+        particleCount: 60,
+        spread: 80,
+        origin: { y: 0.6 }
+      });
+    } catch {}
+
+    // 3. Limpiar estado
+    currentMediaUrl = null;
+    currentFile = null;
+    if (fileGalleryInput) fileGalleryInput.value = '';
+    if (cameraFallbackInput) cameraFallbackInput.value = '';
+    if (previewVideo) previewVideo.pause();
+    previewPanel?.classList.add('hidden');
+    methodsContainer?.classList.remove('hidden');
+
+    if (btnConfirm) {
+      (btnConfirm as HTMLButtonElement).disabled = false;
+      btnConfirm.innerHTML = `
+        <span>Transmitir a la Pantalla Gigante</span>
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+        </svg>
       `;
     }
 
-    setTimeout(() => {
-      galleryStore.addPhoto({
-        url: currentMediaUrl!,
-        mediaType: currentMediaType,
-        durationSeconds: videoDuration,
-        source: currentSource
-      });
-
-      try {
-        confetti({
-          particleCount: 50,
-          spread: 80,
-          origin: { y: 0.6 }
-        });
-      } catch {}
-
-      currentMediaUrl = null;
-      if (fileGalleryInput) fileGalleryInput.value = '';
-      if (cameraFallbackInput) cameraFallbackInput.value = '';
-      if (previewVideo) previewVideo.pause();
-      previewPanel?.classList.add('hidden');
-      methodsContainer?.classList.remove('hidden');
-
-      if (btnConfirm) {
-        btnConfirm.innerHTML = `
-          <span>Transmitir a la Pantalla Gigante</span>
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
-          </svg>
-        `;
-      }
-
-      const feed = document.getElementById('photo-wall-grid');
-      feed?.scrollIntoView({ behavior: 'smooth' });
-    }, 350);
+    const feed = document.getElementById('photo-wall-grid');
+    feed?.scrollIntoView({ behavior: 'smooth' });
   });
 </script>

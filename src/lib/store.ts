@@ -1,75 +1,38 @@
 import type { PhotoItem, UserSession, MediaType } from './types';
-import { getSupabase } from './supabase';
+import { getSupabase, fetchMediaFromSupabase, updateLikeCountInDB, deleteMediaFromSupabase } from './supabase';
 
-const PHOTOS_STORAGE_KEY = 'senati_event_gallery_photos_v3';
+const PHOTOS_STORAGE_KEY = 'senati_event_gallery_photos_v4';
 const USER_STORAGE_KEY = 'senati_event_user_session_v3';
 const LIKES_STORAGE_KEY = 'senati_event_liked_photos_v3';
 
-// Curated institutional media for SENATI events (Images & 8s Short Videos)
-export const INITIAL_PHOTOS: PhotoItem[] = [
-  {
-    id: 'senati-demo-video-1',
-    url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
-    mediaType: 'video',
-    durationSeconds: 7.8,
-    thumbnailUrl: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=600&q=80',
-    timestamp: Date.now() - 1000 * 60 * 8,
-    likes: 62,
-    isApproved: true,
-    source: 'camera'
-  },
-  {
-    id: 'senati-demo-1',
-    url: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=1400&q=80',
-    mediaType: 'image',
-    timestamp: Date.now() - 1000 * 60 * 18,
-    likes: 34,
-    isApproved: true,
-    source: 'upload'
-  },
-  {
-    id: 'senati-demo-2',
-    url: 'https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&w=1400&q=80',
-    mediaType: 'image',
-    timestamp: Date.now() - 1000 * 60 * 35,
-    likes: 48,
-    isApproved: true,
-    source: 'camera'
-  },
-  {
-    id: 'senati-demo-3',
-    url: 'https://images.unsplash.com/photo-1581092335397-9583fe92d232?auto=format&fit=crop&w=1400&q=80',
-    mediaType: 'image',
-    timestamp: Date.now() - 1000 * 60 * 62,
-    likes: 27,
-    isApproved: true,
-    source: 'upload'
-  },
-  {
-    id: 'senati-demo-4',
-    url: 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1400&q=80',
-    mediaType: 'image',
-    timestamp: Date.now() - 1000 * 60 * 110,
-    likes: 56,
-    isApproved: true,
-    source: 'camera'
-  }
-];
+// Array vacío inicial: sin fotos de referencia
+export const INITIAL_PHOTOS: PhotoItem[] = [];
 
 class EventGalleryStore {
   private channel: BroadcastChannel | null = null;
   private supabaseRealtimeChannel: any = null;
   private listeners: Set<(event: { type: string; data?: any }) => void> = new Set();
+  private isSyncing = false;
 
   constructor() {
     if (typeof window !== 'undefined') {
+      // Limpiar versiones anteriores que tenían fotos de demostración
       try {
-        this.channel = new BroadcastChannel('senati_event_live_channel_v3');
+        localStorage.removeItem('senati_event_gallery_photos_v3');
+      } catch {}
+
+      try {
+        this.channel = new BroadcastChannel('senati_event_live_channel_v4');
         this.channel.onmessage = (msg) => {
           if (msg.data?.type === 'PHOTO_DELETED' && msg.data?.data?.photoId) {
             const current = this.getPhotos();
             const filtered = current.filter((p) => p.id !== msg.data.data.photoId);
             localStorage.setItem(PHOTOS_STORAGE_KEY, JSON.stringify(filtered));
+          } else if (msg.data?.type === 'PHOTO_ADDED' && msg.data?.data) {
+            const current = this.getPhotos();
+            if (!current.some(p => p.id === msg.data.data.id)) {
+              localStorage.setItem(PHOTOS_STORAGE_KEY, JSON.stringify([msg.data.data, ...current]));
+            }
           }
           this.notifyListeners(msg.data);
         };
@@ -84,6 +47,58 @@ class EventGalleryStore {
       });
 
       this.initSupabaseRealtime();
+      this.syncWithSupabase();
+
+      // Sondeo periódico cada 10 segundos como respaldo de conexión
+      setInterval(() => {
+        this.syncWithSupabase();
+      }, 10000);
+    }
+  }
+
+  /**
+   * Sincroniza la galería local con la tabla 'media_uploads' de Supabase
+   */
+  public async syncWithSupabase() {
+    if (typeof window === 'undefined' || this.isSyncing) return;
+    this.isSyncing = true;
+
+    try {
+      const remoteData = await fetchMediaFromSupabase();
+      if (remoteData && Array.isArray(remoteData)) {
+        const remotePhotos: PhotoItem[] = remoteData.map((row: any) => ({
+          id: String(row.id),
+          url: row.url,
+          mediaType: (row.media_type as MediaType) || 'image',
+          durationSeconds: row.duration_seconds ? Number(row.duration_seconds) : undefined,
+          timestamp: row.created_at ? new Date(row.created_at).getTime() : Date.now(),
+          likes: Number(row.like_count || 0),
+          isApproved: row.approved !== false,
+          source: 'upload'
+        }));
+
+        // Combinar fotos remotas con las fotos locales
+        const currentLocal = this.getPhotos();
+        const mergedMap = new Map<string, PhotoItem>();
+
+        // 1. Fotos de la base de datos
+        remotePhotos.forEach(p => mergedMap.set(p.id, p));
+
+        // 2. Fotos locales que aún no estén en remote (o subidas temporalmente)
+        currentLocal.forEach(p => {
+          if (!mergedMap.has(p.id) && !p.id.startsWith('senati-demo')) {
+            mergedMap.set(p.id, p);
+          }
+        });
+
+        const merged = Array.from(mergedMap.values()).sort((a, b) => b.timestamp - a.timestamp);
+        localStorage.setItem(PHOTOS_STORAGE_KEY, JSON.stringify(merged));
+        this.notifyListeners({ type: 'PHOTOS_UPDATED' });
+      }
+    } catch (e) {
+      console.warn('Error sincronizando fotos con Supabase:', e);
+    } finally {
+      this.isSyncing = false;
     }
   }
 
@@ -94,7 +109,16 @@ class EventGalleryStore {
 
       this.supabaseRealtimeChannel = supabase.channel('senati_global_event_room');
 
+      // Escuchar cambios en la tabla 'media_uploads' en PostgreSQL
       this.supabaseRealtimeChannel
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'media_uploads' },
+          (payload: any) => {
+            console.log('Supabase postgres_changes recibido:', payload.eventType);
+            this.syncWithSupabase();
+          }
+        )
         .on('broadcast', { event: 'PHOTO_ADDED' }, (payload: any) => {
           if (payload && payload.data) {
             const current = this.getPhotos();
@@ -148,23 +172,30 @@ class EventGalleryStore {
   }
 
   public getPhotos(): PhotoItem[] {
-    if (typeof window === 'undefined') return INITIAL_PHOTOS;
+    if (typeof window === 'undefined') return [];
 
     const raw = localStorage.getItem(PHOTOS_STORAGE_KEY);
-    if (!raw) {
-      localStorage.setItem(PHOTOS_STORAGE_KEY, JSON.stringify(INITIAL_PHOTOS));
-      return INITIAL_PHOTOS;
-    }
+    if (!raw) return [];
+
     try {
       const parsed = JSON.parse(raw);
-      return Array.isArray(parsed) && parsed.length > 0 ? parsed : INITIAL_PHOTOS;
+      if (Array.isArray(parsed)) {
+        // Eliminar cualquier foto de demostración previa
+        const clean = parsed.filter(p => !p.id.startsWith('senati-demo'));
+        if (clean.length !== parsed.length) {
+          localStorage.setItem(PHOTOS_STORAGE_KEY, JSON.stringify(clean));
+        }
+        return clean;
+      }
+      return [];
     } catch {
-      return INITIAL_PHOTOS;
+      return [];
     }
   }
 
-  // Upload photo or video without names or messages
+  // Subir foto o video
   public addPhoto(mediaInput: { 
+    id?: string;
     url: string; 
     mediaType?: MediaType; 
     durationSeconds?: number;
@@ -173,12 +204,12 @@ class EventGalleryStore {
   }): PhotoItem {
     const photos = this.getPhotos();
     const newMedia: PhotoItem = {
+      id: mediaInput.id || ('media-' + Date.now() + '-' + Math.random().toString(36).substring(2, 7)),
       url: mediaInput.url,
       mediaType: mediaInput.mediaType || 'image',
       durationSeconds: mediaInput.durationSeconds,
       thumbnailUrl: mediaInput.thumbnailUrl,
       source: mediaInput.source || 'upload',
-      id: 'media-' + Date.now() + '-' + Math.random().toString(36).substring(2, 7),
       timestamp: Date.now(),
       likes: 0,
       isApproved: true,
@@ -191,7 +222,8 @@ class EventGalleryStore {
       
       this.channel?.postMessage(eventPayload);
       
-      if (this.supabaseRealtimeChannel) {
+      if (this.supabaseRealtimeChannel && !newMedia.url.startsWith('data:')) {
+        // Enviar por broadcast solo si es URL pública de storage (para no exceder límite de tamaño de websocket)
         this.supabaseRealtimeChannel.send({
           type: 'broadcast',
           event: 'PHOTO_ADDED',
@@ -215,18 +247,24 @@ class EventGalleryStore {
     const target = photos.find((p) => p.id === photoId);
     if (!target) return 0;
 
+    let delta = 1;
     let newCount = target.likes;
     if (likedSet.has(photoId)) {
       likedSet.delete(photoId);
       newCount = Math.max(0, target.likes - 1);
+      delta = -1;
     } else {
       likedSet.add(photoId);
       newCount = target.likes + 1;
+      delta = 1;
     }
 
     target.likes = newCount;
     localStorage.setItem(LIKES_STORAGE_KEY, JSON.stringify(Array.from(likedSet)));
     localStorage.setItem(PHOTOS_STORAGE_KEY, JSON.stringify(photos));
+
+    // Sincronizar like con la base de datos Supabase
+    updateLikeCountInDB(photoId, delta);
 
     const payload = { type: 'PHOTO_LIKED', data: { photoId, likes: newCount } };
     this.channel?.postMessage(payload);
@@ -240,7 +278,6 @@ class EventGalleryStore {
     }
 
     this.notifyListeners(payload);
-
     return newCount;
   }
 
@@ -299,12 +336,8 @@ class EventGalleryStore {
       });
     }
 
-    // Call Supabase DB/storage delete helper
-    import('./supabase').then(({ deleteMediaFromSupabase }) => {
-      deleteMediaFromSupabase(photoId);
-    }).catch((err) => {
-      console.warn('Error invoking Supabase delete:', err);
-    });
+    // Borrar de Supabase (Database y Storage)
+    deleteMediaFromSupabase(photoId);
 
     this.notifyListeners(payload);
     return true;
@@ -312,10 +345,8 @@ class EventGalleryStore {
 
   public resetToDefaults(): void {
     if (typeof window === 'undefined') return;
-    localStorage.setItem(PHOTOS_STORAGE_KEY, JSON.stringify(INITIAL_PHOTOS));
-    const payload = { type: 'PHOTOS_UPDATED' };
-    this.channel?.postMessage(payload);
-    this.notifyListeners(payload);
+    localStorage.removeItem(PHOTOS_STORAGE_KEY);
+    this.syncWithSupabase();
   }
 }
 
