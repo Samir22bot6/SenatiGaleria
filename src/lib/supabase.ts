@@ -1,9 +1,12 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
-// Read from env or localStorage
+const DEFAULT_SUPABASE_URL = 'https://stwsoqoirxhzpaidelch.supabase.co';
+const DEFAULT_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN0d3NvcW9pcnhoenBhaWRlbGNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIwMzU2OTQsImV4cCI6MjEwNzYxMTY5NH0.DubNwlTVDFKinM0rmG1Q-Y7mr6xnsTdEQJzdcFumJtU';
+
+// Read from env, localStorage, or fallback
 export function getSupabaseConfig(): { url: string; anonKey: string; isConfigured: boolean } {
-  let url = import.meta.env.PUBLIC_SUPABASE_URL || '';
-  let anonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY || '';
+  let url = import.meta.env.PUBLIC_SUPABASE_URL || DEFAULT_SUPABASE_URL;
+  let anonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY || DEFAULT_SUPABASE_ANON_KEY;
 
   if (typeof window !== 'undefined') {
     const savedUrl = localStorage.getItem('senati_supabase_url');
