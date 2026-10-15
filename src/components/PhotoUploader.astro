@@ -71,11 +71,29 @@
     </label>
   </div>
 
-  <!-- Fallback móvil nativo para captura de cámara -->
+  <!-- Fallback / Nativo móvil para foto -->
   <input 
     type="file" 
     id="camera-fallback-input" 
     accept="image/*,video/*" 
+    capture="environment" 
+    class="hidden"
+  />
+
+  <!-- Input nativo exclusivo para foto (sin video) en mobile -->
+  <input 
+    type="file" 
+    id="camera-photo-input" 
+    accept="image/*" 
+    capture="environment" 
+    class="hidden"
+  />
+
+  <!-- Input nativo exclusivo para video (sin foto) en mobile -->
+  <input 
+    type="file" 
+    id="camera-video-input" 
+    accept="video/*" 
     capture="environment" 
     class="hidden"
   />
@@ -401,6 +419,8 @@
   const methodsContainer    = document.getElementById('upload-methods-container');
   const btnCamera           = document.getElementById('btn-open-camera');
   const cameraFallbackInput = document.getElementById('camera-fallback-input') as HTMLInputElement;
+  const cameraPhotoInput    = document.getElementById('camera-photo-input') as HTMLInputElement;
+  const cameraVideoInput    = document.getElementById('camera-video-input') as HTMLInputElement;
   const fileGalleryInput    = document.getElementById('file-gallery-input') as HTMLInputElement;
 
   // Cámara Pro
@@ -537,6 +557,22 @@
   //  CÁMARA PRO: getUserMedia EN ALTA RESOLUCIÓN + CAMBIO DE LENTE
   // ═══════════════════════════════════════════════════════════════════
   async function startCameraStream() {
+    // Detectar si es dispositivo móvil (toca pantalla, sin hover fino)
+    const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ||
+      (navigator.maxTouchPoints > 1 && !window.matchMedia('(pointer: fine)').matches);
+
+    if (isMobile) {
+      // En móvil: usar la cámara NATIVA del dispositivo para la mejor experiencia
+      // El usuario elige foto o video desde las tabs antes de abrir la cámara
+      if (activeCameraMode === 'video') {
+        cameraVideoInput?.click();
+      } else {
+        cameraPhotoInput?.click();
+      }
+      return;
+    }
+
+    // Desktop: usar WebRTC getUserMedia
     if (mediaStream) {
       mediaStream.getTracks().forEach(track => track.stop());
       mediaStream = null;
@@ -819,6 +855,19 @@
     if (file) handleSelectedFile(file, 'camera');
   });
 
+  // Inputs nativos exclusivos de móvil (foto/video)
+  cameraPhotoInput?.addEventListener('change', (e) => {
+    const file = (e.target as HTMLInputElement).files?.[0];
+    if (file) handleSelectedFile(file, 'camera');
+    (e.target as HTMLInputElement).value = ''; // reset para poder volver a capturar
+  });
+
+  cameraVideoInput?.addEventListener('change', (e) => {
+    const file = (e.target as HTMLInputElement).files?.[0];
+    if (file) handleSelectedFile(file, 'camera');
+    (e.target as HTMLInputElement).value = '';
+  });
+
   // ═══════════════════════════════════════════════════════════════════
   //  MÓDULO DE RECORTE DE VIDEO (TIMELINE TRIMMER)
   // ═══════════════════════════════════════════════════════════════════
@@ -1038,6 +1087,11 @@
 
     previewPanel.classList.remove('hidden');
     methodsContainer?.classList.add('hidden');
+
+    // Auto-scroll al panel de preview para que el usuario lo vea inmediatamente
+    setTimeout(() => {
+      previewPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 120);
   }
 
   btnDiscard?.addEventListener('click', () => {
