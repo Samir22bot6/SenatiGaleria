@@ -1,7 +1,7 @@
 ---
 // ProjectionView.astro — Modo Presentación Cinematográfico en Vivo para Pantalla Gigante
-import senatiSymbol from '../assets/Senati-Symbol.png';
-const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+import senatiSymbol from "../assets/Senati-Symbol.png";
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 ---
 
 <div
@@ -11,45 +11,71 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
   style="background: radial-gradient(ellipse at 50% 100%, #1a0533 0%, #0a0118 40%, #000000 100%);"
 >
   <!-- ═══ Partículas y efectos ambientales ═══ -->
-  <canvas id="particles-canvas" class="absolute inset-0 w-full h-full pointer-events-none z-0"></canvas>
+  <canvas
+    id="particles-canvas"
+    class="absolute inset-0 w-full h-full pointer-events-none z-0"></canvas>
 
   <!-- Glow superior ambiental -->
-  <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[1200px] h-[320px] bg-gradient-to-b from-purple-600/15 via-cyan-500/5 to-transparent blur-3xl pointer-events-none z-0"></div>
+  <div
+    class="absolute top-0 left-1/2 -translate-x-1/2 w-[1200px] h-[320px] bg-gradient-to-b from-purple-600/15 via-cyan-500/5 to-transparent blur-3xl pointer-events-none z-0"
+  >
+  </div>
 
   <!-- ═════════════════════════════════════════════════════════════════════
        CABECERA Y BARRA DE CONTROL DE PROYECCIÓN
   ═════════════════════════════════════════════════════════════════════ -->
-  <header class="relative z-30 px-3 sm:px-6 py-2.5 flex flex-wrap items-center justify-between gap-3 bg-black/60 backdrop-blur-xl border-b border-white/10 shadow-lg">
-    
+  <header
+    class="relative z-30 px-3 sm:px-6 py-2.5 flex flex-wrap items-center justify-between gap-3 bg-black/60 backdrop-blur-xl border-b border-white/10 shadow-lg"
+  >
     <!-- Lado Izquierdo: Botón Volver al Muro + Logo SENATI -->
     <div class="flex items-center gap-3">
       <!-- Botón Volver al Muro -->
-      <a 
+      <a
         href={`${base}/galeria`}
         id="btn-back-to-wall"
         class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-white text-xs font-bold transition-all cursor-pointer shadow-sm group"
         title="Regresar a la Galería / Muro de Fotos"
       >
-        <svg class="w-4 h-4 text-cyan-400 group-hover:-translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+        <svg
+          class="w-4 h-4 text-cyan-400 group-hover:-translate-x-0.5 transition-transform"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2.5"
+            d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
         </svg>
         <span class="hidden sm:inline">Volver al Muro</span>
         <span class="sm:hidden">Muro</span>
       </a>
 
       <div class="flex items-center gap-2">
-        <div class="w-8 h-8 rounded-lg bg-white border border-cyan-400/40 p-0.5 flex items-center justify-center shadow-md overflow-hidden">
-          <img src={senatiSymbol.src} alt="SENATI" class="w-full h-full object-contain" />
+        <div
+          class="w-8 h-8 rounded-lg bg-white border border-cyan-400/40 p-0.5 flex items-center justify-center shadow-md overflow-hidden"
+        >
+          <img
+            src={senatiSymbol.src}
+            alt="SENATI"
+            class="w-full h-full object-contain"
+          />
         </div>
         <div>
-          <h1 class="font-heading font-black text-sm sm:text-base tracking-tight bg-gradient-to-r from-white via-purple-200 to-cyan-200 bg-clip-text text-transparent">
+          <h1
+            class="font-heading font-black text-sm sm:text-base tracking-tight bg-gradient-to-r from-white via-purple-200 to-cyan-200 bg-clip-text text-transparent"
+          >
             SENATI LIVE GALLERY
           </h1>
         </div>
       </div>
 
-      <span class="hidden md:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 uppercase tracking-wider">
-        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+      <span
+        class="hidden md:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 uppercase tracking-wider"
+      >
+        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"
+        ></span>
         EN VIVO
       </span>
     </div>
@@ -57,40 +83,88 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
     <!-- Centro: Controles de Reproducción -->
     <div class="flex items-center gap-1.5 sm:gap-2">
       <!-- Anterior -->
-      <button 
-        id="ctrl-btn-prev" 
-        class="p-2 rounded-xl bg-white/10 hover:bg-white/20 active:scale-95 text-white transition-all cursor-pointer border border-white/10" 
+      <button
+        id="ctrl-btn-prev"
+        class="p-2 rounded-xl bg-white/10 hover:bg-white/20 active:scale-95 text-white transition-all cursor-pointer border border-white/10"
         title="Foto anterior (Flecha Izquierda)"
       >
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
+        <svg
+          class="w-4 h-4"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          ><path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2.5"
+            d="M15 19l-7-7 7-7"></path></svg
+        >
       </button>
 
       <!-- Pausar / Reanudar -->
-      <button 
-        id="ctrl-btn-play" 
+      <button
+        id="ctrl-btn-play"
         class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-[#00A3E0] to-[#008cc2] hover:brightness-110 active:scale-95 text-white font-bold text-xs cursor-pointer shadow-lg shadow-cyan-500/20 border border-cyan-400/30 transition-all"
         title="Pausar o reanudar presentación (Barra Espaciadora)"
       >
-        <svg id="icon-pause" class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
-        <svg id="icon-play" class="w-3.5 h-3.5 hidden" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        <svg
+          id="icon-pause"
+          class="w-3.5 h-3.5"
+          fill="currentColor"
+          viewBox="0 0 24 24"
+          ><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"></path></svg
+        >
+        <svg
+          id="icon-play"
+          class="w-3.5 h-3.5 hidden"
+          fill="currentColor"
+          viewBox="0 0 24 24"><path d="M8 5v14l11-7z"></path></svg
+        >
         <span id="label-play" class="hidden sm:inline">Pausar</span>
       </button>
 
       <!-- Siguiente -->
-      <button 
-        id="ctrl-btn-next" 
-        class="p-2 rounded-xl bg-white/10 hover:bg-white/20 active:scale-95 text-white transition-all cursor-pointer border border-white/10" 
+      <button
+        id="ctrl-btn-next"
+        class="p-2 rounded-xl bg-white/10 hover:bg-white/20 active:scale-95 text-white transition-all cursor-pointer border border-white/10"
         title="Foto siguiente (Flecha Derecha)"
       >
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+        <svg
+          class="w-4 h-4"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          ><path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2.5"
+            d="M9 5l7 7-7 7"></path></svg
+        >
       </button>
 
       <!-- Selector de Velocidad -->
-      <div class="flex items-center gap-1 bg-white/10 border border-white/15 rounded-xl px-2 py-1">
-        <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-        <select id="ctrl-select-speed" class="bg-transparent text-[11px] text-white font-bold cursor-pointer focus:outline-none">
+      <div
+        class="flex items-center gap-1 bg-white/10 border border-white/15 rounded-xl px-2 py-1"
+      >
+        <svg
+          class="w-3.5 h-3.5 text-cyan-400"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          ><path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg
+        >
+        <select
+          id="ctrl-select-speed"
+          class="bg-transparent text-[11px] text-white font-bold cursor-pointer focus:outline-none"
+        >
           <option value="3000" class="bg-slate-900 text-white">3s</option>
-          <option value="5000" selected class="bg-slate-900 text-white">5s</option>
+          <option value="5000" selected class="bg-slate-900 text-white"
+            >5s</option
+          >
           <option value="8000" class="bg-slate-900 text-white">8s</option>
           <option value="12000" class="bg-slate-900 text-white">12s</option>
           <option value="15000" class="bg-slate-900 text-white">15s</option>
@@ -101,266 +175,574 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
     <!-- Lado Derecho: Contador y Fullscreen -->
     <div class="flex items-center gap-2">
       <!-- Contador de Fotos -->
-      <div class="flex items-center gap-1 px-3 py-1 rounded-xl bg-white/10 border border-white/10 text-[11px] font-bold text-white/80">
-        <span class="text-cyan-400" id="photo-counter-current">1</span>
+      <div
+        class="flex items-center gap-1 px-3 py-1 rounded-xl bg-white/10 border border-white/10 text-[11px] font-bold text-white/80"
+      >
+        <span class="text-cyan-400" id="photo-counter-current">0</span>
         <span class="text-white/40">/</span>
-        <span id="photo-counter-total">–</span>
+        <span id="photo-counter-total">0</span>
       </div>
 
       <!-- Pantalla Completa (F) -->
-      <button 
-        id="btn-fullscreen" 
-        class="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white/80 hover:text-white transition-all cursor-pointer border border-white/10" 
+      <button
+        id="btn-fullscreen"
+        class="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white/80 hover:text-white transition-all cursor-pointer border border-white/10"
         title="Pantalla completa (F)"
       >
-        <svg id="icon-expand" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-5h-4m4 0v4m0-4l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
-        <svg id="icon-compress" class="w-4 h-4 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 9V4.5M9 9H4.5M9 9L3.75 3.75M9 15v4.5M9 15H4.5M9 15l-5.25 5.25M15 9h4.5M15 9V4.5M15 9l5.25-5.25M15 15h4.5M15 15v4.5M15 15l5.25 5.25"/></svg>
+        <svg
+          id="icon-expand"
+          class="w-4 h-4"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          ><path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M4 8V4m0 0h4M4 4l5 5m11-5h-4m4 0v4m0-4l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"
+          ></path></svg
+        >
+        <svg
+          id="icon-compress"
+          class="w-4 h-4 hidden"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          ><path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M9 9V4.5M9 9H4.5M9 9L3.75 3.75M9 15v4.5M9 15H4.5M9 15l-5.25 5.25M15 9h4.5M15 9V4.5M15 9l5.25-5.25M15 15h4.5M15 15v4.5M15 15l5.25 5.25"
+          ></path></svg
+        >
       </button>
     </div>
   </header>
 
   <!-- ═════════════════════════════════════════════════════════════════════
-       3D FILM STRIPS + VISOR CENTRAL CINEMATOGRÁFICO
+       3D FILM STRIPS + VISOR CENTRAL CINEMATOGRÁFICO EXPANDIDO
   ═════════════════════════════════════════════════════════════════════ -->
-  <div class="relative flex-1 flex flex-col items-center justify-center overflow-hidden z-10 px-2 sm:px-4">
-
-    <!-- Columna marquee izquierda (sube) -->
-    <div id="marquee-left-wrap" class="absolute left-0 top-0 bottom-0 w-[160px] xl:w-[200px] overflow-hidden pointer-events-none hidden lg:block" style="mask-image: linear-gradient(to bottom, transparent 0%, black 12%, black 88%, transparent 100%);">
-      <div id="marquee-left" class="marquee-col flex flex-col gap-2.5 px-2 py-2"></div>
-    </div>
-
-    <!-- Columna marquee derecha (baja) -->
-    <div id="marquee-right-wrap" class="absolute right-0 top-0 bottom-0 w-[160px] xl:w-[200px] overflow-hidden pointer-events-none hidden lg:block" style="mask-image: linear-gradient(to bottom, transparent 0%, black 12%, black 88%, transparent 100%);">
-      <div id="marquee-right" class="marquee-col flex flex-col gap-2.5 px-2 py-2"></div>
-    </div>
-
-    <!-- Visor central con transiciones -->
-    <div class="relative z-20 w-full max-w-4xl px-2">
-      <!-- Marco principal con borde glow -->
-      <div 
-        id="main-frame" 
-        class="relative rounded-2xl overflow-hidden shadow-[0_0_70px_rgba(124,58,237,0.35),0_0_120px_rgba(0,163,224,0.18)] border border-white/15 bg-black/70 backdrop-blur-md" 
-        style="aspect-ratio: 16/9;"
+  <div
+    class="relative flex-1 flex flex-col items-center justify-center overflow-hidden z-10 px-2 sm:px-6"
+  >
+    <!-- Columna marquee izquierda (sube) — Más grande y separada de los laterales -->
+    <div
+      id="marquee-left-wrap"
+      class="absolute left-3 lg:left-6 xl:left-9 2xl:left-12 top-4 bottom-4 w-[210px] xl:w-[250px] 2xl:w-[280px] overflow-hidden pointer-events-none hidden lg:block z-10"
+      style="mask-image: linear-gradient(to bottom, transparent 0%, black 7%, black 93%, transparent 100%); -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 7%, black 93%, transparent 100%);"
+    >
+      <div
+        id="marquee-left"
+        class="marquee-col flex flex-col gap-3.5 px-1 py-2 pointer-events-auto"
       >
-        <!-- Estado Vacío en Pantalla Gigante cuando no hay fotos aún -->
-        <div id="main-frame-empty" class="hidden absolute inset-0 z-20 flex flex-col items-center justify-center p-6 text-center bg-black/85 backdrop-blur-md">
-          <div class="w-20 h-20 rounded-3xl bg-gradient-to-br from-[#00A3E0]/20 to-purple-500/20 text-cyan-300 flex items-center justify-center mb-5 border border-cyan-400/30 shadow-lg shadow-cyan-500/20 animate-pulse">
-            <svg class="w-10 h-10 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
-            </svg>
-          </div>
-          <h3 class="font-heading font-black text-2xl sm:text-3xl text-white tracking-tight mb-2">
-            Esperando Fotos en Vivo
-          </h3>
-          <p class="text-xs sm:text-sm text-cyan-200/80 max-w-md leading-relaxed mb-4">
-            ¡Escanea el código QR en la esquina con tu celular para subir tus fotos o videos y verlos proyectados aquí en tiempo real!
-          </p>
-          <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-white/10 text-cyan-300 border border-white/15">
-            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-            Listo para recibir transmisiones
-          </span>
-        </div>
+      </div>
+    </div>
 
-        <!-- BADGE FOTO RECIÉN SUBIDA (Cola de relevancia) -->
-        <div 
-          id="badge-priority-new" 
-          class="hidden absolute top-4 left-4 z-30 flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r from-amber-500 via-pink-500 to-cyan-500 text-white font-black text-xs tracking-wider uppercase shadow-xl animate-bounce"
-        >
-          <span class="w-2 h-2 rounded-full bg-white animate-ping"></span>
-          <span>⭐ ¡Recién Subida!</span>
-        </div>
+    <!-- Columna marquee derecha (baja) — Más grande, separada y respetando el espacio del QR -->
+    <div
+      id="marquee-right-wrap"
+      class="absolute right-3 lg:right-6 xl:right-9 2xl:right-12 top-4 bottom-[200px] w-[210px] xl:w-[250px] 2xl:w-[280px] overflow-hidden pointer-events-none hidden lg:block z-10"
+      style="mask-image: linear-gradient(to bottom, transparent 0%, black 7%, black 93%, transparent 100%); -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 7%, black 93%, transparent 100%);"
+    >
+      <div
+        id="marquee-right"
+        class="marquee-col flex flex-col gap-3.5 px-1 py-2 pointer-events-auto"
+      >
+      </div>
+    </div>
 
-        <!-- Imagen principal -->
+    <!-- Visor central cinematográfico expandido -->
+    <div
+      class="relative z-20 w-full max-w-4xl lg:max-w-4xl xl:max-w-5xl 2xl:max-w-6xl px-2 sm:px-4 flex flex-col items-center"
+    >
+      <!-- Ambilight Glow Reactivo: proyecta suavemente los tonos de la imagen actual hacia el fondo -->
+      <div
+        id="ambient-glow"
+        class="absolute -inset-6 sm:-inset-10 rounded-full opacity-60 blur-3xl transition-opacity duration-1000 -z-10 pointer-events-none overflow-hidden"
+      >
         <img
-          id="main-display-image"
+          id="ambient-glow-img"
           src=""
-          alt="Fotografía SENATI"
-          class="w-full h-full object-contain transition-all duration-700 ease-out"
+          alt=""
+          class="w-full h-full object-cover scale-150 filter blur-3xl opacity-75"
         />
+      </div>
 
-        <!-- Video principal -->
-        <video
-          id="main-display-video"
-          src=""
-          autoplay
-          muted
-          playsinline
-          class="w-full h-full object-contain hidden"
-        ></video>
+      <!-- Marco principal cinematográfico con doble bisel y sombra profunda -->
+      <div
+        id="main-frame-bezel"
+        class="relative w-full rounded-3xl p-1.5 sm:p-2 bg-gradient-to-b from-white/25 via-white/10 to-white/5 shadow-[0_25px_90px_rgba(0,0,0,0.85),0_0_120px_rgba(0,163,224,0.25),0_0_150px_rgba(124,58,237,0.2)] border border-white/20 backdrop-blur-xl"
+      >
+        <div
+          id="main-frame"
+          class="relative w-full rounded-2xl overflow-hidden bg-black/95 flex items-center justify-center"
+          style="height: clamp(340px, 58vh, 680px); aspect-ratio: 16/9;"
+        >
+          <!-- Fondo difuminado dinámico (Pillarbox blur) para fotos verticales/cuadradas -->
+          <img
+            id="main-display-bg"
+            src=""
+            alt=""
+            class="absolute inset-0 w-full h-full object-cover filter blur-2xl opacity-40 scale-125 pointer-events-none transition-all duration-700 hidden"
+          />
+          <div class="absolute inset-0 bg-black/35 pointer-events-none"></div>
 
-        <!-- Transición overlay flash -->
-        <div id="transition-flash" class="absolute inset-0 bg-white/0 pointer-events-none transition-all duration-300 z-10"></div>
+          <!-- Estado Vacío en Pantalla Gigante cuando no hay fotos aún -->
+          <div
+            id="main-frame-empty"
+            class="absolute inset-0 z-30 flex flex-col items-center justify-center p-6 text-center bg-black/90 backdrop-blur-md"
+          >
+            <div
+              class="w-16 h-16 sm:w-20 sm:h-20 rounded-3xl bg-gradient-to-br from-[#00A3E0]/20 to-purple-500/20 text-cyan-300 flex items-center justify-center mb-3 border border-cyan-400/30 shadow-lg shadow-cyan-500/20 animate-pulse"
+            >
+              <svg
+                class="w-8 h-8 sm:w-10 sm:h-10 text-cyan-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
+                ></path>
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+              </svg>
+            </div>
+            <h3
+              class="font-heading font-black text-xl sm:text-2xl lg:text-3xl text-white tracking-tight mb-1"
+            >
+              ¡Esperando Fotos o Videos en Vivo!
+            </h3>
+            <p
+              class="text-xs sm:text-sm text-cyan-200/80 max-w-md leading-relaxed mb-3"
+            >
+              Escanea el código QR con tu celular para subir fotos o videos y verlos proyectados aquí en tiempo real.
+            </p>
 
-        <!-- Overlay inferior: hora, estado y likes -->
-        <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent p-4 sm:p-5 flex items-end justify-between">
-          <div class="flex items-center gap-2.5">
-            <span class="text-[10px] bg-gradient-to-r from-purple-600 to-cyan-500 text-white px-2.5 py-0.5 rounded font-black uppercase tracking-wider shadow">
-              En Vivo
+            <!-- QR Central Grande para escanear cómodamente desde la pantalla -->
+            <div class="my-2 p-2 bg-white rounded-2xl shadow-2xl border-2 border-cyan-400/40 inline-flex items-center justify-center">
+              <img
+                id="center-empty-qr"
+                src=""
+                alt="Escanear QR para participar"
+                class="w-28 h-28 sm:w-36 sm:h-36 object-contain cursor-pointer"
+              />
+            </div>
+
+            <span
+              class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-xs font-bold bg-white/10 text-cyan-300 border border-white/15 mt-2"
+            >
+              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+              Transmisión en directo lista
             </span>
-            <span id="main-photo-time" class="text-xs text-white/70 font-medium"></span>
           </div>
-          <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/10 backdrop-blur-md border border-white/15 text-pink-400 font-black text-sm shadow">
-            <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-            <span id="main-photo-likes">0</span>
+
+          <!-- Badges flotantes superiores -->
+          <div
+            class="absolute top-3.5 left-3.5 sm:top-4 sm:left-4 z-30 flex items-center gap-2"
+          >
+            <!-- Badge Live -->
+            <span
+              class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] sm:text-xs font-black bg-black/60 backdrop-blur-md text-emerald-300 border border-emerald-500/40 shadow-lg uppercase tracking-wider"
+            >
+              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"
+              ></span>
+              <span>EN VIVO</span>
+            </span>
+
+            <!-- BADGE FOTO RECIÉN SUBIDA (Cola de relevancia) -->
+            <div
+              id="badge-priority-new"
+              class="hidden flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-amber-500 via-pink-500 to-cyan-500 text-white font-black text-[10px] sm:text-xs tracking-wider uppercase shadow-xl animate-bounce border border-white/30"
+            >
+              <span>⭐ ¡Recién Subida!</span>
+            </div>
+          </div>
+
+          <div
+            class="absolute top-3.5 right-3.5 sm:top-4 sm:right-4 z-30 flex items-center gap-2"
+          >
+            <div
+              class="px-3 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/15 text-[10px] sm:text-xs font-bold text-white/90 shadow flex items-center gap-1.5"
+            >
+              <span class="w-1.5 h-1.5 rounded-full bg-[#00A3E0]"></span>
+              <span>SENATI 2026</span>
+            </div>
+          </div>
+
+          <!-- Imagen principal centrada en alta resolución -->
+          <img
+            id="main-display-image"
+            src=""
+            alt="Fotografía SENATI"
+            class="relative z-20 max-w-full max-h-full object-contain drop-shadow-[0_15px_40px_rgba(0,0,0,0.85)] transition-all duration-700 ease-out hidden"
+          />
+
+          <!-- Video principal -->
+          <video
+            id="main-display-video"
+            src=""
+            autoplay
+            muted
+            playsinline
+            class="relative z-20 max-w-full max-h-full object-contain drop-shadow-[0_15px_40px_rgba(0,0,0,0.85)] hidden"
+          ></video>
+
+          <!-- Transición overlay flash -->
+          <div
+            id="transition-flash"
+            class="absolute inset-0 bg-white/0 pointer-events-none transition-all duration-300 z-20"
+          >
+          </div>
+
+          <!-- Overlay inferior: información, autor, hora y likes -->
+          <div
+            class="absolute bottom-0 inset-x-0 z-30 bg-gradient-to-t from-black/95 via-black/60 to-transparent p-4 sm:p-5 flex items-end justify-between"
+          >
+            <div class="flex items-center gap-3">
+              <div
+                class="w-9 h-9 rounded-xl bg-white/10 backdrop-blur-md border border-white/20 p-1 flex items-center justify-center shadow"
+              >
+                <img
+                  src={senatiSymbol.src}
+                  alt="SENATI"
+                  class="w-full h-full object-contain"
+                />
+              </div>
+              <div>
+                <p
+                  id="main-photo-time"
+                  class="text-xs sm:text-sm text-white font-bold flex items-center gap-2"
+                >
+                  <span>Transmisión en directo</span>
+                </p>
+                <p
+                  class="text-[10px] sm:text-[11px] text-cyan-200/80 font-medium"
+                >
+                  Evento Oficial SENATI 2026
+                </p>
+              </div>
+            </div>
+
+            <div
+              class="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-white/15 backdrop-blur-md border border-white/25 text-pink-400 font-black text-xs sm:text-sm shadow-lg"
+            >
+              <svg
+                class="w-4 h-4 fill-current animate-pulse"
+                viewBox="0 0 24 24"
+                ><path
+                  d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
+                ></path></svg
+              >
+              <span id="main-photo-likes">0</span>
+            </div>
+          </div>
+
+          <!-- Barra de progreso del slide actual en tiempo real -->
+          <div
+            class="absolute bottom-0 inset-x-0 h-1 bg-white/15 z-40 overflow-hidden"
+          >
+            <div
+              id="slide-progress-bar"
+              class="h-full bg-gradient-to-r from-[#00A3E0] via-purple-500 to-cyan-300 w-0"
+            >
+            </div>
           </div>
         </div>
       </div>
     </div>
 
     <!-- Mini tira horizontal inferior con miniaturas -->
-    <div class="relative z-20 mt-3 sm:mt-4 px-2 w-full max-w-4xl">
-      <div id="thumbnail-strip" class="flex items-center gap-2 overflow-x-auto scroll-smooth py-1 px-1 no-scrollbar justify-center">
+    <div
+      class="relative z-20 mt-3 sm:mt-4 px-2 w-full max-w-4xl lg:max-w-4xl xl:max-w-5xl 2xl:max-w-6xl"
+    >
+      <div
+        id="thumbnail-strip"
+        class="flex items-center gap-2.5 overflow-x-auto scroll-smooth py-1.5 px-2 no-scrollbar justify-center"
+      >
         <!-- JS renderiza aquí -->
       </div>
     </div>
   </div>
 
   <!-- ═══ QR en vivo (Esquina inferior derecha) ═══ -->
-  <div class="fixed bottom-3 right-3 z-40 bg-black/75 backdrop-blur-xl rounded-2xl p-2.5 sm:p-3 shadow-2xl border border-purple-500/30 flex flex-col items-center max-w-[160px] sm:max-w-[180px]">
-    <div class="w-24 h-24 sm:w-28 sm:h-28 bg-white rounded-xl p-1 flex items-center justify-center">
-      <canvas id="qr-canvas" class="w-full h-full cursor-pointer" title="Escanear para subir fotos"></canvas>
+  <div
+    id="qr-container-card"
+    class="fixed bottom-3 right-3 z-40 bg-black/80 backdrop-blur-xl rounded-2xl p-2.5 sm:p-3 shadow-2xl border border-purple-500/30 flex flex-col items-center max-w-[160px] sm:max-w-[180px] cursor-pointer hover:border-cyan-400/60 transition-all group"
+    title="Clic para copiar enlace"
+  >
+    <div
+      class="w-24 h-24 sm:w-28 sm:h-28 bg-white rounded-xl p-1 flex items-center justify-center overflow-hidden shadow-inner"
+    >
+      <img
+        id="qr-image"
+        src=""
+        alt="QR Evento SENATI"
+        class="w-full h-full object-contain pointer-events-none"
+      />
     </div>
-    <div class="mt-2 text-center w-full">
-      <span class="inline-block bg-gradient-to-r from-purple-600 to-cyan-500 text-white text-[9px] font-black uppercase px-2 py-0.5 rounded-full tracking-wider">
+    <div class="mt-2 text-center w-full pointer-events-none">
+      <span
+        class="inline-block bg-gradient-to-r from-purple-600 to-cyan-500 text-white text-[9px] font-black uppercase px-2 py-0.5 rounded-full tracking-wider group-hover:scale-105 transition-transform"
+      >
         ¡Sube tu foto o video!
       </span>
-      <input type="text" id="input-qr-url" class="w-full text-[9px] font-mono mt-1.5 px-2 py-0.5 bg-white/10 border border-white/10 rounded text-white/60 text-center" readonly/>
+      <input
+        type="text"
+        id="input-qr-url"
+        class="w-full text-[9px] font-mono mt-1.5 px-2 py-0.5 bg-white/10 border border-white/10 rounded text-white/60 text-center select-all pointer-events-auto"
+        readonly
+      />
     </div>
   </div>
 
   <!-- ═══ TOAST NOTIFICACIÓN NUEVA FOTO (Próxima en salir) ═══ -->
-  <div 
-    id="live-toast" 
+  <div
+    id="live-toast"
     class="fixed top-16 left-1/2 -translate-x-1/2 z-50 transform -translate-y-24 opacity-0 pointer-events-none transition-all duration-500 bg-gradient-to-r from-[#002855] via-purple-700 to-cyan-600 text-white px-5 py-3 rounded-2xl shadow-[0_0_50px_rgba(0,163,224,0.5)] flex items-center gap-3 border border-cyan-400/40"
   >
-    <div class="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
+    <div
+      class="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center shrink-0"
+    >
       <span class="text-xl">📸</span>
     </div>
     <div>
-      <p class="text-[10px] font-black uppercase tracking-wider text-cyan-200">¡Foto recién subida recibida!</p>
-      <p class="text-xs sm:text-sm font-bold text-white">Será la PRÓXIMA en proyectarse en pantalla ✨</p>
+      <p class="text-[10px] font-black uppercase tracking-wider text-cyan-200">
+        ¡Foto recién subida recibida!
+      </p>
+      <p class="text-xs sm:text-sm font-bold text-white">
+        Será la PRÓXIMA en proyectarse en pantalla ✨
+      </p>
     </div>
   </div>
-
 </div>
 
 <style>
   /* Animaciones de transición cinematográficas */
   @keyframes slideInRight {
-    from { transform: translateX(80px) scale(0.92); opacity: 0; }
-    to   { transform: translateX(0) scale(1); opacity: 1; }
+    from {
+      transform: translateX(80px) scale(0.92);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0) scale(1);
+      opacity: 1;
+    }
   }
   @keyframes slideInLeft {
-    from { transform: translateX(-80px) scale(0.92); opacity: 0; }
-    to   { transform: translateX(0) scale(1); opacity: 1; }
+    from {
+      transform: translateX(-80px) scale(0.92);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0) scale(1);
+      opacity: 1;
+    }
   }
   @keyframes zoomIn {
-    from { transform: scale(0.8); opacity: 0; }
-    to   { transform: scale(1); opacity: 1; }
+    from {
+      transform: scale(0.8);
+      opacity: 0;
+    }
+    to {
+      transform: scale(1);
+      opacity: 1;
+    }
   }
   @keyframes fadeKen {
-    0%   { transform: scale(1); }
-    100% { transform: scale(1.05); }
+    0% {
+      transform: scale(1);
+    }
+    100% {
+      transform: scale(1.05);
+    }
   }
-  .anim-slide-right { animation: slideInRight 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
-  .anim-slide-left  { animation: slideInLeft 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
-  .anim-zoom-in     { animation: zoomIn 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
-  .anim-ken-burns   { animation: fadeKen 8s ease-out forwards; }
+  .anim-slide-right {
+    animation: slideInRight 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+  .anim-slide-left {
+    animation: slideInLeft 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+  .anim-zoom-in {
+    animation: zoomIn 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+  .anim-ken-burns {
+    animation: fadeKen 8s ease-out forwards;
+  }
 
   /* ── Marquee columns ─────────────────────────────────────── */
-  @keyframes marqueeUp   { from { transform: translateY(0); } to { transform: translateY(-50%); } }
-  @keyframes marqueeDown { from { transform: translateY(-50%); } to { transform: translateY(0); } }
+  @keyframes marqueeUp {
+    from {
+      transform: translateY(0);
+    }
+    to {
+      transform: translateY(-50%);
+    }
+  }
+  @keyframes marqueeDown {
+    from {
+      transform: translateY(-50%);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
 
   .marquee-col {
     /* JS sets animation-duration dynamically */
     will-change: transform;
   }
   .marquee-col.running-up {
-    animation: marqueeUp var(--marquee-dur, 20s) linear infinite;
+    animation: marqueeUp var(--marquee-dur, 22s) linear infinite;
   }
   .marquee-col.running-down {
-    animation: marqueeDown var(--marquee-dur, 20s) linear infinite;
+    animation: marqueeDown var(--marquee-dur, 22s) linear infinite;
+  }
+  .marquee-col:hover {
+    animation-play-state: paused;
   }
 
   /* Card inside marquee */
+  .mq-card {
+    position: relative;
+    width: 100%;
+    border-radius: 16px;
+    overflow: hidden;
+    cursor: pointer;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    background: rgba(10, 5, 25, 0.55);
+    backdrop-filter: blur(10px);
+    transition:
+      transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1),
+      border-color 0.4s,
+      box-shadow 0.4s,
+      opacity 0.4s;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  }
+  .mq-card:hover {
+    transform: scale(1.035);
+    border-color: rgba(0, 163, 224, 0.75);
+    box-shadow: 0 10px 30px rgba(0, 163, 224, 0.35);
+    z-index: 5;
+  }
+  .mq-card.highlight {
+    border-color: rgba(0, 163, 224, 1);
+    box-shadow:
+      0 0 32px rgba(0, 163, 224, 0.75),
+      inset 0 0 15px rgba(0, 163, 224, 0.3);
+    transform: scale(1.045);
+  }
   .mq-thumb {
     width: 100%;
-    aspect-ratio: 4/3;
-    border-radius: 10px;
+    aspect-ratio: 16/10;
     object-fit: cover;
-    border: 2px solid rgba(255,255,255,0.07);
-    opacity: 0.45;
-    transition: opacity 0.6s, border-color 0.6s, box-shadow 0.6s;
+    opacity: 0.65;
+    transition:
+      opacity 0.4s,
+      transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
     display: block;
   }
-  .mq-thumb.highlight {
-    opacity: 0.95;
-    border-color: rgba(0,163,224,0.7);
-    box-shadow: 0 0 24px rgba(0,163,224,0.45);
+  .mq-card:hover .mq-thumb,
+  .mq-card.highlight .mq-thumb {
+    opacity: 1;
+    transform: scale(1.05);
   }
   .mq-video-badge {
     position: absolute;
-    bottom: 4px; right: 5px;
-    background: rgba(0,0,0,0.75);
+    bottom: 6px;
+    right: 6px;
+    background: rgba(0, 0, 0, 0.85);
     color: #67e8f9;
-    font-size: 9px;
+    font-size: 10px;
     font-weight: 800;
-    padding: 1px 5px;
-    border-radius: 4px;
+    padding: 2px 7px;
+    border-radius: 6px;
+    border: 1px solid rgba(103, 232, 249, 0.35);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    z-index: 2;
   }
 </style>
 
 <script>
-  import QRCode from 'qrcode';
-  import confetti from 'canvas-confetti';
-  import { galleryStore } from '../lib/store';
-  import type { PhotoItem } from '../lib/types';
+  import QRCode from "qrcode";
+  import confetti from "canvas-confetti";
+  import { galleryStore } from "../lib/store";
+  import type { PhotoItem } from "../lib/types";
 
   // ── Constantes y Configuración ──
-  const container   = document.getElementById('projection-container') as HTMLElement;
-  const BASE_URL    = container?.dataset.baseUrl  || '';
+  const container = document.getElementById(
+    "projection-container",
+  ) as HTMLElement;
+  const BASE_URL = container?.dataset.baseUrl || "";
 
   // ── DOM Refs ──
-  const strip           = document.getElementById('thumbnail-strip')!;
-  const mainImage       = document.getElementById('main-display-image') as HTMLImageElement;
-  const mainVideo       = document.getElementById('main-display-video') as HTMLVideoElement;
-  const mainFrameEmpty  = document.getElementById('main-frame-empty');
-  const transitionFlash = document.getElementById('transition-flash')!;
-  const badgePriority   = document.getElementById('badge-priority-new')!;
-  const photoTime       = document.getElementById('main-photo-time')!;
-  const photoLikes      = document.getElementById('main-photo-likes')!;
-  const counterCurrent  = document.getElementById('photo-counter-current')!;
-  const counterTotal    = document.getElementById('photo-counter-total')!;
-  const qrCanvas        = document.getElementById('qr-canvas') as HTMLCanvasElement;
-  const qrUrlInput      = document.getElementById('input-qr-url') as HTMLInputElement;
-  const liveToast       = document.getElementById('live-toast')!;
+  const strip = document.getElementById("thumbnail-strip")!;
+  const mainImage = document.getElementById(
+    "main-display-image",
+  ) as HTMLImageElement;
+  const mainVideo = document.getElementById(
+    "main-display-video",
+  ) as HTMLVideoElement;
+  const ambientGlowImg = document.getElementById(
+    "ambient-glow-img",
+  ) as HTMLImageElement | null;
+  const mainDisplayBg = document.getElementById(
+    "main-display-bg",
+  ) as HTMLImageElement | null;
+  const slideProgressBar = document.getElementById(
+    "slide-progress-bar",
+  ) as HTMLElement | null;
+  const mainFrameEmpty = document.getElementById("main-frame-empty");
+  const transitionFlash = document.getElementById("transition-flash")!;
+  const badgePriority = document.getElementById("badge-priority-new")!;
+  const photoTime = document.getElementById("main-photo-time")!;
+  const photoLikes = document.getElementById("main-photo-likes")!;
+  const counterCurrent = document.getElementById("photo-counter-current")!;
+  const counterTotal = document.getElementById("photo-counter-total")!;
+  const qrImage = document.getElementById("qr-image") as HTMLImageElement | null;
+  const centerEmptyQr = document.getElementById("center-empty-qr") as HTMLImageElement | null;
+  const qrContainerCard = document.getElementById("qr-container-card");
+  const qrUrlInput = document.getElementById(
+    "input-qr-url",
+  ) as HTMLInputElement;
+  const liveToast = document.getElementById("live-toast")!;
 
-  const ctrlBtnPrev     = document.getElementById('ctrl-btn-prev')!;
-  const ctrlBtnNext     = document.getElementById('ctrl-btn-next')!;
-  const ctrlBtnPlay     = document.getElementById('ctrl-btn-play')!;
-  const iconPause       = document.getElementById('icon-pause')!;
-  const iconPlay        = document.getElementById('icon-play')!;
-  const labelPlay       = document.getElementById('label-play')!;
-  const ctrlSpeed       = document.getElementById('ctrl-select-speed') as HTMLSelectElement;
+  const ctrlBtnPrev = document.getElementById("ctrl-btn-prev")!;
+  const ctrlBtnNext = document.getElementById("ctrl-btn-next")!;
+  const ctrlBtnPlay = document.getElementById("ctrl-btn-play")!;
+  const iconPause = document.getElementById("icon-pause")!;
+  const iconPlay = document.getElementById("icon-play")!;
+  const labelPlay = document.getElementById("label-play")!;
+  const ctrlSpeed = document.getElementById(
+    "ctrl-select-speed",
+  ) as HTMLSelectElement;
 
-  const btnFullscreen   = document.getElementById('btn-fullscreen')!;
-  const iconExpand      = document.getElementById('icon-expand')!;
-  const iconCompress    = document.getElementById('icon-compress')!;
+  const btnFullscreen = document.getElementById("btn-fullscreen")!;
+  const iconExpand = document.getElementById("icon-expand")!;
+  const iconCompress = document.getElementById("icon-compress")!;
 
   // ── Estado ──
   let photos: PhotoItem[] = [];
-  let currentIndex        = 0;
-  let prevIndex           = -1;
-  let isSlideshowActive   = true;
-  let slideshowInterval   = 5000;
+  let currentIndex = 0;
+  let prevIndex = -1;
+  let isSlideshowActive = true;
+  let slideshowInterval = 5000;
   let slideTimer: ReturnType<typeof setTimeout> | null = null;
   let priorityQueue: PhotoItem[] = []; // Cola de fotos recién subidas que deben ser las próximas en proyectarse
 
   // ── Formateador de tiempo relativo ──
   function fmt(ts: number) {
     const d = Math.max(0, Math.floor((Date.now() - ts) / 1000));
-    if (d < 60) return 'Hace unos segundos';
+    if (d < 60) return "Hace unos segundos";
     const m = Math.floor(d / 60);
     if (m < 60) return `Hace ${m} min`;
     return `Hace ${Math.floor(m / 60)} h`;
@@ -368,49 +750,74 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 
   // ── URL de celular para el QR ──
   function getMobileUrl(): string {
-    const saved = localStorage.getItem('senati_qr_custom_url');
+    const saved = localStorage.getItem("senati_qr_custom_url");
     if (saved) return saved;
     const h = window.location.hostname;
-    if (h === 'localhost' || h === '127.0.0.1') {
-      const port = window.location.port ? `:${window.location.port}` : '';
+    if (h === "localhost" || h === "127.0.0.1") {
+      const port = window.location.port ? `:${window.location.port}` : "";
       return `http://192.168.1.222${port}${BASE_URL}/galeria`;
     }
     return `${window.location.origin}${BASE_URL}/galeria`;
   }
 
-  function generateQR(url: string) {
-    if (!qrCanvas) return;
-    QRCode.toCanvas(qrCanvas, url, { width: 112, margin: 1, color: { dark: '#002855', light: '#FFFFFF' } }, () => {});
-    if (qrUrlInput) qrUrlInput.value = url;
+  async function generateQR(url: string) {
+    try {
+      const dataUrl = await QRCode.toDataURL(url, {
+        width: 320,
+        margin: 1,
+        color: { dark: "#002855", light: "#FFFFFF" },
+      });
+      if (qrImage) qrImage.src = dataUrl;
+      if (centerEmptyQr) centerEmptyQr.src = dataUrl;
+      if (qrUrlInput) qrUrlInput.value = url;
+    } catch (e) {
+      console.error("Error al generar QR:", e);
+    }
   }
 
   // ── Atajos de Teclado ──
-  window.addEventListener('keydown', (e: KeyboardEvent) => {
-    if (e.key === 'ArrowLeft') selectPhoto(currentIndex - 1);
-    if (e.key === 'ArrowRight') nextSlide();
-    if (e.key === ' ' && e.target === document.body) {
+  window.addEventListener("keydown", (e: KeyboardEvent) => {
+    if (e.key === "ArrowLeft") selectPhoto(currentIndex - 1);
+    if (e.key === "ArrowRight") nextSlide();
+    if (e.key === " " && e.target === document.body) {
       e.preventDefault();
       toggleSlideshow();
     }
-    if (e.key.toLowerCase() === 'f') btnFullscreen?.click();
+    if (e.key.toLowerCase() === "f") btnFullscreen?.click();
   });
 
   // ═══════════════════════════════════════════════════════════════════
   //  PARTÍCULAS AMBIENTALES
   // ═══════════════════════════════════════════════════════════════════
-  const pCanvas = document.getElementById('particles-canvas') as HTMLCanvasElement;
+  const pCanvas = document.getElementById(
+    "particles-canvas",
+  ) as HTMLCanvasElement;
   if (pCanvas) {
-    const ctx = pCanvas.getContext('2d')!;
-    let particles: { x: number; y: number; r: number; vx: number; vy: number; a: number; da: number; color: string }[] = [];
+    const ctx = pCanvas.getContext("2d")!;
+    let particles: {
+      x: number;
+      y: number;
+      r: number;
+      vx: number;
+      vy: number;
+      a: number;
+      da: number;
+      color: string;
+    }[] = [];
 
     function resizeParticles() {
       pCanvas.width = window.innerWidth;
       pCanvas.height = window.innerHeight;
     }
     resizeParticles();
-    window.addEventListener('resize', resizeParticles);
+    window.addEventListener("resize", resizeParticles);
 
-    const colors = ['rgba(124,58,237,', 'rgba(0,163,224,', 'rgba(255,255,255,', 'rgba(236,72,153,'];
+    const colors = [
+      "rgba(124,58,237,",
+      "rgba(0,163,224,",
+      "rgba(255,255,255,",
+      "rgba(236,72,153,",
+    ];
     for (let i = 0; i < 50; i++) {
       particles.push({
         x: Math.random() * pCanvas.width,
@@ -420,14 +827,16 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
         vy: (Math.random() - 0.5) * 0.3 - 0.15,
         a: Math.random(),
         da: (Math.random() - 0.5) * 0.01,
-        color: colors[Math.floor(Math.random() * colors.length)]
+        color: colors[Math.floor(Math.random() * colors.length)],
       });
     }
 
     function drawParticles() {
       ctx.clearRect(0, 0, pCanvas.width, pCanvas.height);
-      particles.forEach(p => {
-        p.x += p.vx; p.y += p.vy; p.a += p.da;
+      particles.forEach((p) => {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.a += p.da;
         if (p.a > 1) p.da = -Math.abs(p.da);
         if (p.a < 0.1) p.da = Math.abs(p.da);
         if (p.x < 0) p.x = pCanvas.width;
@@ -447,89 +856,127 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
   // ═══════════════════════════════════════════════════════════════════
   //  MARQUEE DUAL — columna izquierda sube, derecha baja
   // ═══════════════════════════════════════════════════════════════════
-  const marqueeLeft  = document.getElementById('marquee-left')  as HTMLElement;
-  const marqueeRight = document.getElementById('marquee-right') as HTMLElement;
+  const marqueeLeft = document.getElementById("marquee-left") as HTMLElement;
+  const marqueeRight = document.getElementById("marquee-right") as HTMLElement;
+
+  // ── Barra de Progreso del Slide Actual ──
+  function startProgressBar(durationMs: number) {
+    if (!slideProgressBar) return;
+    slideProgressBar.style.transition = "none";
+    slideProgressBar.style.width = "0%";
+    void slideProgressBar.offsetWidth;
+    if (isSlideshowActive) {
+      slideProgressBar.style.transition = `width ${durationMs}ms linear`;
+      slideProgressBar.style.width = "100%";
+    }
+  }
+
+  function pauseProgressBar() {
+    if (!slideProgressBar) return;
+    const computedW = window.getComputedStyle(slideProgressBar).width;
+    slideProgressBar.style.transition = "none";
+    slideProgressBar.style.width = computedW;
+  }
 
   /**
-   * Builds a looping marquee card list.
-   * We duplicate the set so the scroll wraps seamlessly (CSS marquee trick).
+   * Genera tarjetas del marquee lateral con mayor tamaño, mejor resolución y clic directo
    */
   function buildMarqueeCards(photos: PhotoItem[]) {
     return photos.map((photo, idx) => {
-      const src = photo.thumbnailUrl ||
-        (photo.mediaType === 'video'
-          ? '' // will use video-badge only thumb fallback
-          : photo.url);
-      const isVideo = photo.mediaType === 'video';
-      const wrap = document.createElement('div');
-      wrap.style.cssText = 'position:relative;width:100%;';
+      const src =
+        photo.thumbnailUrl || (photo.mediaType === "video" ? "" : photo.url);
+      const isVideo = photo.mediaType === "video";
 
-      const img = document.createElement('img');
-      img.className = `mq-thumb ${idx === currentIndex ? 'highlight' : ''}`;
+      const card = document.createElement("div");
+      card.className = `mq-card ${idx === currentIndex ? "highlight" : ""}`;
+      card.setAttribute("data-photo-id", photo.id);
+      card.title = `Proyectar ${isVideo ? "video" : "foto"} en el centro`;
+
+      const img = document.createElement("img");
+      img.className = "mq-thumb";
       img.src = src || photo.url;
-      img.alt = 'Media';
-      img.loading = 'lazy';
-      img.setAttribute('data-photo-id', photo.id);
-      wrap.appendChild(img);
+      img.alt = "Media SENATI";
+      img.loading = "lazy";
+      card.appendChild(img);
+
+      // Gradiente suave inferior para realce visual
+      const overlay = document.createElement("div");
+      overlay.className =
+        "absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-transparent pointer-events-none";
+      card.appendChild(overlay);
 
       if (isVideo) {
-        const badge = document.createElement('span');
-        badge.className = 'mq-video-badge';
-        badge.textContent = '▶ VID';
-        wrap.appendChild(badge);
+        const badge = document.createElement("span");
+        badge.className = "mq-video-badge";
+        badge.innerHTML =
+          '<span class="w-1.5 h-1.5 rounded-full bg-cyan-300 animate-pulse"></span> VID 8s';
+        card.appendChild(badge);
       }
-      return wrap;
+
+      // Clic directo para proyectar esta foto
+      card.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const targetIdx = photos.findIndex((p) => p.id === photo.id);
+        if (targetIdx !== -1) {
+          selectPhoto(targetIdx);
+          if (isSlideshowActive) scheduleNext();
+        }
+      });
+
+      return card;
     });
   }
 
   function renderFilmStrips() {
     if (!marqueeLeft || !marqueeRight) return;
     if (photos.length === 0) {
-      marqueeLeft.innerHTML = '';
-      marqueeRight.innerHTML = '';
+      marqueeLeft.innerHTML = "";
+      marqueeRight.innerHTML = "";
       return;
     }
 
-    marqueeLeft.innerHTML = '';
-    marqueeRight.innerHTML = '';
+    marqueeLeft.innerHTML = "";
+    marqueeRight.innerHTML = "";
 
-    // Build two copies for seamless infinite scroll
+    // Dos copias continuas para el scroll infinito suave
     const cardsA = buildMarqueeCards(photos);
     const cardsB = buildMarqueeCards(photos);
 
-    // Left column: first set then duplicate
-    cardsA.forEach(c => marqueeLeft.appendChild(c));
-    cardsB.forEach(c => marqueeLeft.appendChild(c.cloneNode(true) as HTMLElement));
+    // Columna izquierda: hacia arriba
+    cardsA.forEach((c) => marqueeLeft.appendChild(c));
+    cardsB.forEach((c) =>
+      marqueeLeft.appendChild(c.cloneNode(true) as HTMLElement),
+    );
 
-    // Right column: duplicate then first set (offset start so they feel independent)
+    // Columna derecha: hacia abajo (con desfase para fluidez natural)
     const cardsC = buildMarqueeCards(photos);
     const cardsD = buildMarqueeCards(photos);
-    cardsC.forEach(c => marqueeRight.appendChild(c));
-    cardsD.forEach(c => marqueeRight.appendChild(c.cloneNode(true) as HTMLElement));
+    cardsC.forEach((c) => marqueeRight.appendChild(c));
+    cardsD.forEach((c) =>
+      marqueeRight.appendChild(c.cloneNode(true) as HTMLElement),
+    );
 
-    // Speed: ~4s per card, min 10s, max 60s
-    const dur = Math.min(60, Math.max(10, photos.length * 4));
-    marqueeLeft.style.setProperty('--marquee-dur', `${dur}s`);
-    marqueeRight.style.setProperty('--marquee-dur', `${dur}s`);
+    // Duración de animación dinámica: suave y cinematográfica
+    const dur = Math.min(65, Math.max(12, photos.length * 4.5));
+    marqueeLeft.style.setProperty("--marquee-dur", `${dur}s`);
+    marqueeRight.style.setProperty("--marquee-dur", `${dur}s`);
 
-    // Reset and restart animations
-    marqueeLeft.classList.remove('running-up', 'running-down');
-    marqueeRight.classList.remove('running-up', 'running-down');
-    void (marqueeLeft as any).offsetWidth; // reflow
+    marqueeLeft.classList.remove("running-up", "running-down");
+    marqueeRight.classList.remove("running-up", "running-down");
+    void (marqueeLeft as any).offsetWidth;
     void (marqueeRight as any).offsetWidth;
-    marqueeLeft.classList.add('running-up');
-    marqueeRight.classList.add('running-down');
+    marqueeLeft.classList.add("running-up");
+    marqueeRight.classList.add("running-down");
 
-    // Highlight card matching current slide
     updateMarqueeHighlight();
   }
 
   function updateMarqueeHighlight() {
     if (!marqueeLeft || !marqueeRight) return;
     const curId = photos[currentIndex]?.id;
-    [marqueeLeft, marqueeRight].forEach(col => {
-      col.querySelectorAll<HTMLImageElement>('img[data-photo-id]').forEach(img => {
-        img.classList.toggle('highlight', img.dataset.photoId === curId);
+    [marqueeLeft, marqueeRight].forEach((col) => {
+      col.querySelectorAll<HTMLElement>(".mq-card").forEach((card) => {
+        card.classList.toggle("highlight", card.dataset.photoId === curId);
       });
     });
   }
@@ -542,6 +989,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
       clearTimeout(slideTimer);
       slideTimer = null;
     }
+    pauseProgressBar();
   }
 
   function scheduleNext() {
@@ -549,25 +997,23 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
     if (!isSlideshowActive) return;
 
     const cur = photos[currentIndex];
-    if (cur?.mediaType === 'video') {
-      // Videos: NO programamos timer — esperamos el evento 'ended'
-      // Solo un safety-net generoso por si el video falla en cargar
+    if (cur?.mediaType === "video") {
+      startProgressBar(8000);
       slideTimer = setTimeout(() => nextSlide(), 120000); // 2 min max safety
     } else {
+      startProgressBar(slideshowInterval);
       slideTimer = setTimeout(() => nextSlide(), slideshowInterval);
     }
   }
 
-  mainVideo.addEventListener('ended', () => {
+  mainVideo.addEventListener("ended", () => {
     if (isSlideshowActive) {
       clearSlideTimer();
-      // Pequeña pausa cinematográfica antes de avanzar
       slideTimer = setTimeout(() => nextSlide(), 600);
     }
   });
 
-  // Si el video es rechazado por el navegador, avanzar tras 30s
-  mainVideo.addEventListener('error', () => {
+  mainVideo.addEventListener("error", () => {
     if (isSlideshowActive) {
       clearSlideTimer();
       slideTimer = setTimeout(() => nextSlide(), 2000);
@@ -580,36 +1026,37 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
   function nextSlide() {
     if (photos.length === 0) return;
 
-    // Si hay fotos recién subidas en espera, ¡SIEMPRE son las próximas a salir!
     if (priorityQueue.length > 0) {
       const nextPriority = priorityQueue.shift()!;
-      const foundIdx = photos.findIndex(p => p.id === nextPriority.id);
+      const foundIdx = photos.findIndex((p) => p.id === nextPriority.id);
       if (foundIdx !== -1) {
-        selectPhoto(foundIdx, true); // true = es foto prioritaria recién subida
+        selectPhoto(foundIdx, true);
         return;
       }
     }
 
-    // Si no hay cola prioritaria, continúa la secuencia normal
     selectPhoto(currentIndex + 1);
   }
 
-  const transitions = ['anim-slide-right', 'anim-slide-left', 'anim-zoom-in'];
+  const transitions = ["anim-slide-right", "anim-slide-left", "anim-zoom-in"];
 
   function selectPhoto(index: number, isPriorityNew: boolean = false) {
     if (photos.length === 0) {
-      mainImage.src = '';
-      mainVideo.src = '';
-      mainImage.classList.add('hidden');
-      mainVideo.classList.add('hidden');
-      badgePriority.classList.add('hidden');
-      mainFrameEmpty?.classList.remove('hidden');
-      if (counterCurrent) counterCurrent.textContent = '0';
-      if (counterTotal) counterTotal.textContent = '0';
+      mainImage.src = "";
+      mainVideo.src = "";
+      if (ambientGlowImg) ambientGlowImg.src = "";
+      if (mainDisplayBg) mainDisplayBg.src = "";
+      mainImage.classList.add("hidden");
+      mainVideo.classList.add("hidden");
+      badgePriority.classList.add("hidden");
+      mainFrameEmpty?.classList.remove("hidden");
+      if (counterCurrent) counterCurrent.textContent = "0";
+      if (counterTotal) counterTotal.textContent = "0";
+      pauseProgressBar();
       return;
     }
 
-    mainFrameEmpty?.classList.add('hidden');
+    mainFrameEmpty?.classList.add("hidden");
 
     if (index < 0) index = photos.length - 1;
     if (index >= photos.length) index = 0;
@@ -619,38 +1066,49 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
     currentIndex = index;
     const cur = photos[currentIndex];
 
-    // Destello de transición
-    transitionFlash.classList.replace('bg-white/0', 'bg-white/20');
-    setTimeout(() => transitionFlash.classList.replace('bg-white/20', 'bg-white/0'), 250);
+    // Destello sutil de transición
+    transitionFlash.classList.replace("bg-white/0", "bg-white/20");
+    setTimeout(
+      () => transitionFlash.classList.replace("bg-white/20", "bg-white/0"),
+      250,
+    );
 
     // Animación de entrada
     let anim: string;
     if (index > prevIndex || (prevIndex === photos.length - 1 && index === 0)) {
-      anim = 'anim-slide-right';
-    } else if (index < prevIndex || (prevIndex === 0 && index === photos.length - 1)) {
-      anim = 'anim-slide-left';
+      anim = "anim-slide-right";
+    } else if (
+      index < prevIndex ||
+      (prevIndex === 0 && index === photos.length - 1)
+    ) {
+      anim = "anim-slide-left";
     } else {
       anim = transitions[Math.floor(Math.random() * transitions.length)];
     }
 
     // Badge de foto recién subida
     if (isPriorityNew) {
-      badgePriority.classList.remove('hidden');
+      badgePriority.classList.remove("hidden");
       try {
         confetti({
           particleCount: 50,
           spread: 70,
           origin: { y: 0.2 },
-          colors: ['#FFD700', '#00A3E0', '#FF4081']
+          colors: ["#FFD700", "#00A3E0", "#FF4081"],
         });
       } catch {}
     } else {
-      badgePriority.classList.add('hidden');
+      badgePriority.classList.add("hidden");
     }
 
-    if (cur.mediaType === 'video') {
-      mainImage.classList.add('hidden');
-      mainVideo.classList.remove('hidden');
+    // Actualizar fondo desenfocado y ambilight reactivo del centro
+    const mediaUrl = cur.thumbnailUrl || cur.url;
+    if (ambientGlowImg) ambientGlowImg.src = mediaUrl;
+    if (mainDisplayBg) mainDisplayBg.src = mediaUrl;
+
+    if (cur.mediaType === "video") {
+      mainImage.classList.add("hidden");
+      mainVideo.classList.remove("hidden");
       mainVideo.src = cur.url;
       mainVideo.currentTime = 0;
       mainVideo.play().catch(() => {});
@@ -659,13 +1117,13 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
       mainVideo.classList.add(anim);
     } else {
       mainVideo.pause();
-      mainVideo.classList.add('hidden');
-      mainImage.classList.remove('hidden');
-      mainImage.classList.remove(...transitions, 'anim-ken-burns');
+      mainVideo.classList.add("hidden");
+      mainImage.classList.remove("hidden");
+      mainImage.classList.remove(...transitions, "anim-ken-burns");
       void (mainImage as any).offsetWidth;
       mainImage.src = cur.url;
       mainImage.classList.add(anim);
-      setTimeout(() => mainImage.classList.add('anim-ken-burns'), 700);
+      setTimeout(() => mainImage.classList.add("anim-ken-burns"), 700);
     }
 
     if (photoTime) photoTime.textContent = fmt(cur.timestamp);
@@ -674,28 +1132,32 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
     if (counterTotal) counterTotal.textContent = String(photos.length);
 
     renderThumbnails();
-    updateMarqueeHighlight(); // lightweight update — only changes highlight class
+    updateMarqueeHighlight();
     scheduleNext();
   }
 
-  // ── Miniaturas horizontales ──
+  // ── Miniaturas horizontales inferiores ──
   function renderThumbnails() {
-    strip.innerHTML = '';
+    strip.innerHTML = "";
     photos.forEach((photo, idx) => {
       const isSelected = idx === currentIndex;
-      const isVideo = photo.mediaType === 'video';
-      const btn = document.createElement('button');
-      btn.className = `relative shrink-0 w-16 h-11 md:w-20 md:h-14 rounded-lg overflow-hidden cursor-pointer transition-all duration-300 transform ${
+      const isVideo = photo.mediaType === "video";
+      const btn = document.createElement("button");
+      btn.className = `relative shrink-0 w-20 h-13 sm:w-24 sm:h-16 rounded-xl overflow-hidden cursor-pointer transition-all duration-300 transform ${
         isSelected
-          ? 'ring-2 ring-cyan-400 scale-110 shadow-lg shadow-cyan-500/40 z-10 opacity-100'
-          : 'opacity-40 hover:opacity-80 ring-1 ring-white/10'
+          ? "ring-2 ring-cyan-400 scale-105 shadow-xl shadow-cyan-500/50 z-10 opacity-100"
+          : "opacity-40 hover:opacity-85 ring-1 ring-white/15"
       }`;
-      const src = photo.thumbnailUrl || (isVideo ? 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=300&q=80' : photo.url);
+      const src =
+        photo.thumbnailUrl ||
+        (isVideo
+          ? "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=300&q=80"
+          : photo.url);
       btn.innerHTML = `
         <img src="${src}" alt="Media" class="w-full h-full object-cover pointer-events-none"/>
-        ${isVideo ? '<span class="absolute bottom-0.5 right-0.5 bg-black/80 text-cyan-300 text-[8px] font-bold px-1 py-0.5 rounded">▶</span>' : ''}
+        ${isVideo ? '<span class="absolute bottom-1 right-1 bg-black/85 text-cyan-300 text-[8px] font-bold px-1.5 py-0.5 rounded backdrop-blur-xs">▶ VID</span>' : ""}
       `;
-      btn.addEventListener('click', () => {
+      btn.addEventListener("click", () => {
         selectPhoto(idx);
         if (isSlideshowActive) scheduleNext();
       });
@@ -703,25 +1165,29 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
     });
 
     const active = strip.children[currentIndex] as HTMLElement;
-    active?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    active?.scrollIntoView({
+      behavior: "smooth",
+      block: "nearest",
+      inline: "center",
+    });
   }
 
   // ── Toast cuando entra una nueva foto ──
   function triggerToast() {
-    liveToast.classList.remove('-translate-y-24', 'opacity-0');
-    liveToast.classList.add('translate-y-0', 'opacity-100');
+    liveToast.classList.remove("-translate-y-24", "opacity-0");
+    liveToast.classList.add("translate-y-0", "opacity-100");
     try {
       confetti({
         particleCount: 50,
         spread: 80,
         origin: { y: 0.15 },
-        colors: ['#00A3E0', '#7C3AED', '#FFD700', '#FFFFFF']
+        colors: ["#00A3E0", "#7C3AED", "#FFD700", "#FFFFFF"],
       });
     } catch {}
 
     setTimeout(() => {
-      liveToast.classList.remove('translate-y-0', 'opacity-100');
-      liveToast.classList.add('-translate-y-24', 'opacity-0');
+      liveToast.classList.remove("translate-y-0", "opacity-100");
+      liveToast.classList.add("-translate-y-24", "opacity-0");
     }, 4500);
   }
 
@@ -730,13 +1196,13 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
   // ═══════════════════════════════════════════════════════════════════
   function updatePlayPauseButton() {
     if (isSlideshowActive) {
-      iconPause.classList.remove('hidden');
-      iconPlay.classList.add('hidden');
-      labelPlay.textContent = 'Pausar';
+      iconPause.classList.remove("hidden");
+      iconPlay.classList.add("hidden");
+      labelPlay.textContent = "Pausar";
     } else {
-      iconPause.classList.add('hidden');
-      iconPlay.classList.remove('hidden');
-      labelPlay.textContent = 'Reanudar';
+      iconPause.classList.add("hidden");
+      iconPlay.classList.remove("hidden");
+      labelPlay.textContent = "Reanudar";
     }
   }
 
@@ -750,17 +1216,17 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
     }
   }
 
-  ctrlBtnPlay.addEventListener('click', toggleSlideshow);
-  ctrlBtnPrev.addEventListener('click', () => selectPhoto(currentIndex - 1));
-  ctrlBtnNext.addEventListener('click', () => nextSlide());
+  ctrlBtnPlay.addEventListener("click", toggleSlideshow);
+  ctrlBtnPrev.addEventListener("click", () => selectPhoto(currentIndex - 1));
+  ctrlBtnNext.addEventListener("click", () => nextSlide());
 
-  ctrlSpeed.addEventListener('change', () => {
+  ctrlSpeed.addEventListener("change", () => {
     slideshowInterval = Number(ctrlSpeed.value);
     if (isSlideshowActive) scheduleNext();
   });
 
   // ── Fullscreen ──
-  btnFullscreen.addEventListener('click', () => {
+  btnFullscreen.addEventListener("click", () => {
     if (!document.fullscreenElement) {
       container?.requestFullscreen?.();
     } else {
@@ -768,16 +1234,27 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
     }
   });
 
-  document.addEventListener('fullscreenchange', () => {
+  document.addEventListener("fullscreenchange", () => {
     const f = !!document.fullscreenElement;
-    iconExpand.classList.toggle('hidden', f);
-    iconCompress.classList.toggle('hidden', !f);
+    iconExpand.classList.toggle("hidden", f);
+    iconCompress.classList.toggle("hidden", !f);
   });
 
-  // ── QR ──
-  qrCanvas?.addEventListener('click', () => {
-    navigator.clipboard?.writeText(qrUrlInput?.value || getMobileUrl());
-  });
+  // ── QR Click / Copiar Enlace ──
+  function copyQrUrl() {
+    const url = qrUrlInput?.value || getMobileUrl();
+    navigator.clipboard?.writeText(url);
+    if (qrUrlInput) {
+      const original = qrUrlInput.value;
+      qrUrlInput.value = "¡Copiado! ✓";
+      setTimeout(() => {
+        qrUrlInput.value = original;
+      }, 1800);
+    }
+  }
+
+  qrContainerCard?.addEventListener("click", copyQrUrl);
+  centerEmptyQr?.addEventListener("click", copyQrUrl);
 
   // ═══════════════════════════════════════════════════════════════════
   //  INICIALIZACIÓN
@@ -789,22 +1266,22 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
     renderFilmStrips();
     renderThumbnails();
 
-    // Iniciar presentación en vivo directamente sin código
-    if (photos.length > 0) {
-      selectPhoto(0);
-    }
+    // Iniciar siempre para configurar la pantalla (si no hay fotos, muestra el estado de espera con QR)
+    selectPhoto(0);
 
+    // Generar código QR para la esquina y el centro
     generateQR(getMobileUrl());
 
     // 2. Suscribirse a eventos del muro y subidas
     galleryStore.subscribe((event) => {
       // Cuando entra una foto nueva recién subida
-      if (event.type === 'PHOTO_ADDED' && event.data) {
+      if (event.type === "PHOTO_ADDED" && event.data) {
         const newPhoto: PhotoItem = event.data;
+        const wasEmpty = photos.length === 0;
         photos = galleryStore.getPhotos();
 
         // Encolar en la cola prioritaria para que sea LA PRÓXIMA en proyectarse
-        if (!priorityQueue.some(p => p.id === newPhoto.id)) {
+        if (!priorityQueue.some((p) => p.id === newPhoto.id)) {
           priorityQueue.push(newPhoto);
         }
 
@@ -813,31 +1290,42 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
         renderFilmStrips();
         if (counterTotal) counterTotal.textContent = String(photos.length);
 
-        // Si la presentación estaba detenida o es la primera foto, mostrarla
-        if (photos.length === 1) {
+        // Si la pantalla estaba vacía o es la primera foto, proyectarla de inmediato
+        if (wasEmpty || photos.length === 1) {
           nextSlide();
         }
-      } 
-      // Cuando se actualizan las fotos (recarga o likes)
-      else if (event.type === 'PHOTOS_UPDATED') {
+      }
+      // Cuando se actualizan las fotos (recarga o sincronización con Supabase)
+      else if (event.type === "PHOTOS_UPDATED") {
+        const wasEmpty = photos.length === 0;
         photos = galleryStore.getPhotos();
         renderThumbnails();
         renderFilmStrips();
         if (counterTotal) counterTotal.textContent = String(photos.length);
-      } 
+
+        // Si antes estaba vacío y ahora llegaron fotos de la base de datos, proyectar la primera
+        if (wasEmpty && photos.length > 0) {
+          selectPhoto(0);
+        } else if (photos.length === 0) {
+          selectPhoto(0);
+        }
+      }
       // Cuando se elimina una foto remotamente
-      else if (event.type === 'PHOTO_DELETED' && event.data) {
+      else if (event.type === "PHOTO_DELETED" && event.data) {
         photos = galleryStore.getPhotos();
-        priorityQueue = priorityQueue.filter(p => p.id !== event.data.photoId);
+        priorityQueue = priorityQueue.filter(
+          (p) => p.id !== event.data.photoId,
+        );
+        renderThumbnails();
+        renderFilmStrips();
         if (photos.length > 0) {
           selectPhoto(Math.min(currentIndex, photos.length - 1));
         } else {
-          mainImage.src = '';
-          mainVideo.src = '';
+          selectPhoto(0);
         }
-      } 
+      }
       // Cuando dan like
-      else if (event.type === 'PHOTO_LIKED') {
+      else if (event.type === "PHOTO_LIKED") {
         photos = galleryStore.getPhotos();
         const cur = photos[currentIndex];
         if (cur && photoLikes) photoLikes.textContent = String(cur.likes);
