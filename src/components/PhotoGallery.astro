@@ -62,8 +62,8 @@
         <input 
           id="admin-pin-input" 
           type="password" 
-          maxlength="6"
-          placeholder="••••••"
+          maxlength="4"
+          placeholder="••••"
           class="w-full text-center text-2xl tracking-[0.5em] font-black border-2 border-slate-200 rounded-2xl p-4 focus:border-red-400 focus:outline-none transition-colors"
         />
         <p id="admin-pin-error" class="text-xs text-red-500 hidden">PIN incorrecto. Inténtalo de nuevo.</p>
@@ -182,7 +182,7 @@
   const btnExitAdmin = document.getElementById('btn-exit-admin');
   const btnAdminPanel = document.getElementById('btn-admin-panel');
 
-  const ADMIN_PIN = 'senati2026'; // PIN secreto
+  const ADMIN_PIN = '2026'; // PIN secreto
   let isAdminMode = false;
   let badgeClickCount = 0;
   let badgeClickTimer: ReturnType<typeof setTimeout> | null = null;
