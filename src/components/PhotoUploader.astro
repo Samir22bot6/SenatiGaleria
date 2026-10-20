@@ -880,12 +880,12 @@
       }
       ctx.drawImage(cameraVideo, 0, 0, w, h);
 
-      currentMediaUrl = cameraCanvas.toDataURL('image/jpeg', 0.94);
+      currentMediaUrl = cameraCanvas.toDataURL('image/webp', 0.88);
       cameraCanvas.toBlob((blob) => {
         if (blob) {
-          currentFile = new File([blob], `photo_${Date.now()}.jpg`, { type: 'image/jpeg' });
+          currentFile = new File([blob], `photo_${Date.now()}.webp`, { type: 'image/webp' });
         }
-      }, 'image/jpeg', 0.94);
+      }, 'image/webp', 0.88);
 
       currentMediaType = 'image';
       currentSource = 'camera';
@@ -1281,6 +1281,57 @@
     }, 120);
   }
 
+  /**
+   * Comprime cualquier imagen a WebP (Full HD 1920px max, calidad 82%)
+   * Reduce el tamaño del archivo entre 80% y 92% para ahorrar cuota en Supabase
+   */
+  async function compressImageToWebP(file: File | Blob): Promise<File> {
+    return new Promise((resolve) => {
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+        const canvas = document.createElement('canvas');
+        const maxDim = 1920;
+        let w = img.width;
+        let h = img.height;
+        if (w > maxDim || h > maxDim) {
+          if (w > h) {
+            h = Math.round((h * maxDim) / w);
+            w = maxDim;
+          } else {
+            w = Math.round((w * maxDim) / h);
+            h = maxDim;
+          }
+        }
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, w, h);
+          canvas.toBlob((blob) => {
+            if (blob) {
+              const webpFile = new File([blob], `senati_${Date.now()}.webp`, {
+                type: 'image/webp',
+                lastModified: Date.now()
+              });
+              resolve(webpFile);
+            } else {
+              resolve(file instanceof File ? file : new File([file], `senati_${Date.now()}.jpg`, { type: 'image/jpeg' }));
+            }
+          }, 'image/webp', 0.82);
+        } else {
+          resolve(file instanceof File ? file : new File([file], `senati_${Date.now()}.jpg`, { type: 'image/jpeg' }));
+        }
+      };
+      img.onerror = () => {
+        URL.revokeObjectURL(url);
+        resolve(file instanceof File ? file : new File([file], `senati_${Date.now()}.jpg`, { type: 'image/jpeg' }));
+      };
+      img.src = url;
+    });
+  }
+
   async function compressImageForOffline(file: File | Blob): Promise<string> {
     return new Promise((resolve) => {
       const img = new Image();
@@ -1305,7 +1356,7 @@
         const ctx = canvas.getContext('2d');
         if (ctx) {
           ctx.drawImage(img, 0, 0, w, h);
-          resolve(canvas.toDataURL('image/jpeg', 0.8));
+          resolve(canvas.toDataURL('image/webp', 0.8));
         } else {
           resolve(url);
         }
@@ -1356,6 +1407,20 @@
       try {
         await performVideoTrim();
       } catch {}
+    } else if (currentMediaType === 'video' && currentFile && currentFile.size > 8 * 1024 * 1024) {
+      // Si el video pesa más de 8MB, optimizarlo para ahorrar almacenamiento
+      try {
+        await performVideoTrim();
+      } catch {}
+    }
+
+    // Si es imagen, comprimirla a WebP para reducir drásticamente el peso y acelerar la subida
+    if (currentMediaType === 'image' && currentFile) {
+      try {
+        currentFile = await compressImageToWebP(currentFile);
+      } catch (err) {
+        console.warn('Compresión WebP advertencia:', err);
+      }
     }
 
     const session = galleryStore.getSession();

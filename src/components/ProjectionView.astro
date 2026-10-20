@@ -1020,6 +1020,22 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
     }
   });
 
+  mainImage.addEventListener("error", () => {
+    const cur = photos[currentIndex];
+    if (cur && cur.url) {
+      console.warn("Foto no encontrada en el storage (posiblemente eliminada):", cur.url);
+      galleryStore.removeGhostPhoto(cur.id);
+      photos = photos.filter((p) => p.id !== cur.id);
+      renderFilmStrips();
+      renderThumbnails();
+      if (counterTotal) counterTotal.textContent = String(photos.length);
+    }
+    if (isSlideshowActive) {
+      clearSlideTimer();
+      slideTimer = setTimeout(() => nextSlide(), 500);
+    }
+  });
+
   /**
    * Avanza a la siguiente foto respetando la COLA PRIORITARIA de fotos recién subidas
    */

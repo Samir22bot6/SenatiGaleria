@@ -1,7 +1,7 @@
 import type { PhotoItem, UserSession, MediaType } from './types';
 import { getSupabase, fetchMediaFromSupabase, updateLikeCountInDB, deleteMediaFromSupabase } from './supabase';
 
-const PHOTOS_STORAGE_KEY = 'senati_event_gallery_photos_v4';
+const PHOTOS_STORAGE_KEY = 'senati_event_gallery_photos_v5';
 const USER_STORAGE_KEY = 'senati_event_user_session_v3';
 const LIKES_STORAGE_KEY = 'senati_event_liked_photos_v3';
 
@@ -16,13 +16,14 @@ class EventGalleryStore {
 
   constructor() {
     if (typeof window !== 'undefined') {
-      // Limpiar versiones anteriores que tenían fotos de demostración
+      // Limpiar versiones anteriores que tenían fotos cacheadas o eliminadas
       try {
         localStorage.removeItem('senati_event_gallery_photos_v3');
+        localStorage.removeItem('senati_event_gallery_photos_v4');
       } catch {}
 
       try {
-        this.channel = new BroadcastChannel('senati_event_live_channel_v4');
+        this.channel = new BroadcastChannel('senati_event_live_channel_v5');
         this.channel.onmessage = (msg) => {
           if (msg.data?.type === 'PHOTO_DELETED' && msg.data?.data?.photoId) {
             const current = this.getPhotos();
@@ -49,15 +50,17 @@ class EventGalleryStore {
       this.initSupabaseRealtime();
       this.syncWithSupabase();
 
-      // Sondeo periódico cada 10 segundos como respaldo de conexión
+      // Sondeo periódico cada 8 segundos como respaldo de conexión
       setInterval(() => {
         this.syncWithSupabase();
-      }, 10000);
+      }, 8000);
     }
   }
 
   /**
-   * Sincroniza la galería local con la tabla 'media_uploads' de Supabase
+   * Sincroniza la galería local con la tabla 'media_uploads' de Supabase.
+   * La base de datos es la fuente oficial: si una foto fue eliminada en Supabase,
+   * se elimina inmediatamente del almacenamiento local y de la interfaz.
    */
   public async syncWithSupabase() {
     if (typeof window === 'undefined' || this.isSyncing) return;
@@ -79,22 +82,8 @@ class EventGalleryStore {
           uploaderDeviceId: row.device_id || undefined
         }));
 
-        // Combinar fotos remotas con las fotos locales
-        const currentLocal = this.getPhotos();
-        const mergedMap = new Map<string, PhotoItem>();
-
-        // 1. Fotos de la base de datos
-        remotePhotos.forEach(p => mergedMap.set(p.id, p));
-
-        // 2. Fotos locales que aún no estén en remote (o subidas temporalmente)
-        currentLocal.forEach(p => {
-          if (!mergedMap.has(p.id) && !p.id.startsWith('senati-demo')) {
-            mergedMap.set(p.id, p);
-          }
-        });
-
-        const merged = Array.from(mergedMap.values()).sort((a, b) => b.timestamp - a.timestamp);
-        localStorage.setItem(PHOTOS_STORAGE_KEY, JSON.stringify(merged));
+        // La base de datos remota es la fuente definitiva de la verdad
+        localStorage.setItem(PHOTOS_STORAGE_KEY, JSON.stringify(remotePhotos));
         this.notifyListeners({ type: 'PHOTOS_UPDATED' });
       }
     } catch (e) {
@@ -102,6 +91,16 @@ class EventGalleryStore {
     } finally {
       this.isSyncing = false;
     }
+  }
+
+  /**
+   * Purga una foto fantasma (por ejemplo, eliminada del Storage bucket directamente que devuelve error 404)
+   */
+  public removeGhostPhoto(photoId: string) {
+    const current = this.getPhotos();
+    const updated = current.filter(p => p.id !== photoId);
+    localStorage.setItem(PHOTOS_STORAGE_KEY, JSON.stringify(updated));
+    this.notifyListeners({ type: 'PHOTOS_UPDATED' });
   }
 
   private initSupabaseRealtime() {

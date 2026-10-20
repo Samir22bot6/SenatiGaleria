@@ -83,7 +83,7 @@ export async function uploadMediaToSupabase(
 
   const ext = (file instanceof File && file.name.includes('.'))
     ? file.name.split('.').pop()
-    : (mediaType === 'video' ? 'webm' : 'jpg');
+    : (mediaType === 'video' ? 'webm' : 'webp');
   const fileName = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${ext}`;
   const filePath = `uploads/${fileName}`;
 
@@ -92,7 +92,7 @@ export async function uploadMediaToSupabase(
     .from('event-media')
     .upload(filePath, file, {
       cacheControl: '3600',
-      contentType: file.type || (mediaType === 'video' ? 'video/webm' : 'image/jpeg'),
+      contentType: file.type || (mediaType === 'video' ? 'video/webm' : 'image/webp'),
       upsert: false,
     });
 

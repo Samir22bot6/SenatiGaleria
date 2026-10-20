@@ -88,17 +88,6 @@
         </div>
 
         <div class="flex items-center gap-2">
-          <button 
-            id="modal-btn-delete" 
-            class="hidden items-center gap-1.5 px-3 py-2 rounded-2xl bg-red-600/20 hover:bg-red-600/40 text-red-300 hover:text-white text-xs font-bold transition-all cursor-pointer border border-red-500/30"
-            title="Eliminar solo mi publicación"
-          >
-            <svg class="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-            </svg>
-            <span>Eliminar mi publicación</span>
-          </button>
-
           <button id="modal-btn-like" class="flex items-center gap-2 px-4 py-2 rounded-2xl bg-white/10 hover:bg-pink-600/30 text-pink-400 font-bold transition-all cursor-pointer">
             <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24">
               <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
@@ -129,7 +118,6 @@
   const modalPhotoTime = document.getElementById('modal-photo-time');
   const modalLikesCount = document.getElementById('modal-likes-count');
   const modalBtnLike = document.getElementById('modal-btn-like');
-  const modalBtnDelete = document.getElementById('modal-btn-delete');
   const btnCloseModal = document.getElementById('btn-close-modal');
 
   let currentPhotos: PhotoItem[] = [];
@@ -243,24 +231,10 @@
           </button>
 
           <div class="flex items-center gap-2">
-            ${isOwner ? `
-              <button 
-                type="button" 
-                data-delete-btn="${photo.id}"
-                class="flex items-center gap-1 text-[11px] font-bold py-1.5 px-3 rounded-full bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 transition-all cursor-pointer active:scale-95 shadow-xs"
-                title="Eliminar solo mi publicación"
-              >
-                <svg class="w-3.5 h-3.5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                </svg>
-                <span>Eliminar</span>
-              </button>
-            ` : `
-              <span class="text-[11px] font-semibold text-emerald-600 flex items-center gap-1">
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                Proyectado
-              </span>
-            `}
+            <span class="text-[11px] font-bold text-emerald-600 flex items-center gap-1.5 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              En Pantalla
+            </span>
           </div>
         </div>
       `;
@@ -277,16 +251,17 @@
         renderGallery();
       });
 
-      if (isOwner) {
-        const deleteBtn = card.querySelector(`[data-delete-btn="${photo.id}"]`);
-        deleteBtn?.addEventListener('click', (e) => {
-          e.stopPropagation();
-          if (confirm('¿Deseas eliminar tu foto del evento y de la pantalla gigante? Esta acción no se puede deshacer.')) {
-            galleryStore.deletePhoto(photo.id);
-            renderGallery();
-          }
-        });
-      }
+      // Detección de fotos eliminadas directamente del storage de Supabase (error 404)
+      const mediaImg = card.querySelector('img');
+      mediaImg?.addEventListener('error', () => {
+        card.remove();
+        galleryStore.removeGhostPhoto(photo.id);
+      });
+      const mediaVid = card.querySelector('video');
+      mediaVid?.addEventListener('error', () => {
+        card.remove();
+        galleryStore.removeGhostPhoto(photo.id);
+      });
 
       grid.appendChild(card);
     });
@@ -314,16 +289,6 @@
       }
     }
 
-    if (modalBtnDelete) {
-      if (galleryStore.isUserPhotoOwner(photo)) {
-        modalBtnDelete.classList.remove('hidden');
-        modalBtnDelete.classList.add('inline-flex');
-      } else {
-        modalBtnDelete.classList.add('hidden');
-        modalBtnDelete.classList.remove('inline-flex');
-      }
-    }
-
     if (modalPhotoTime) modalPhotoTime.textContent = formatTime(photo.timestamp);
     if (modalLikesCount) modalLikesCount.textContent = String(photo.likes);
     modal?.classList.remove('hidden');
@@ -345,15 +310,6 @@
     const newLikes = galleryStore.toggleLike(activeModalPhotoId);
     if (modalLikesCount) modalLikesCount.textContent = String(newLikes);
     renderGallery();
-  });
-
-  modalBtnDelete?.addEventListener('click', () => {
-    if (!activeModalPhotoId) return;
-    if (confirm('¿Deseas eliminar tu publicación? Se retirará del muro y de la pantalla gigante.')) {
-      galleryStore.deletePhoto(activeModalPhotoId);
-      closeModal();
-      renderGallery();
-    }
   });
 
   btnSortRecent?.addEventListener('click', () => {
