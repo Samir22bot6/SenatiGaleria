@@ -8,7 +8,8 @@
     <div>
       <h3 class="font-heading font-black text-2xl text-[#002855] flex items-center gap-2">
         <span>Muro del Evento en Vivo</span>
-        <span id="gallery-count-badge" class="text-xs bg-[#00A3E0]/15 text-[#002855] px-2.5 py-1 rounded-full font-bold">
+        <!-- Badge de conteo (trigger secreto: 7 clics para abrir panel admin) -->
+        <span id="gallery-count-badge" class="text-xs bg-[#00A3E0]/15 text-[#002855] px-2.5 py-1 rounded-full font-bold cursor-default select-none">
           0 fotos
         </span>
       </h3>
@@ -17,6 +18,15 @@
 
     <!-- Filtros y Opciones Rápidas -->
     <div class="flex items-center gap-2">
+      <!-- Botón Admin (solo visible en modo admin) -->
+      <button 
+        id="btn-admin-panel"
+        class="hidden text-[11px] font-semibold px-2.5 py-1.5 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 transition-all cursor-pointer flex items-center gap-1"
+        title="Panel Admin"
+      >
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+        <span>Admin</span>
+      </button>
       <button 
         id="btn-sort-recent" 
         class="text-xs font-bold px-3 py-1.5 rounded-xl bg-[#002855] text-white shadow-sm transition-all cursor-pointer"
@@ -38,6 +48,47 @@
         <span>Sincronizar</span>
       </button>
     </div>
+  </div>
+
+  <!-- Modal PIN Admin (oculto por defecto) -->
+  <div id="admin-pin-modal" class="fixed inset-0 z-[200] hidden bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl border border-slate-200 relative">
+      <div class="flex flex-col items-center gap-4">
+        <div class="w-14 h-14 rounded-2xl bg-red-50 border border-red-200 flex items-center justify-center">
+          <svg class="w-7 h-7 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+        </div>
+        <h3 class="font-heading font-black text-xl text-slate-800">Acceso Admin</h3>
+        <p class="text-sm text-slate-500 text-center">Ingresa el PIN para gestionar el contenido del evento</p>
+        <input 
+          id="admin-pin-input" 
+          type="password" 
+          maxlength="6"
+          placeholder="••••••"
+          class="w-full text-center text-2xl tracking-[0.5em] font-black border-2 border-slate-200 rounded-2xl p-4 focus:border-red-400 focus:outline-none transition-colors"
+        />
+        <p id="admin-pin-error" class="text-xs text-red-500 hidden">PIN incorrecto. Inténtalo de nuevo.</p>
+        <div class="flex gap-3 w-full">
+          <button id="btn-cancel-pin" class="flex-1 py-3 rounded-2xl border border-slate-200 text-slate-600 font-bold text-sm hover:bg-slate-50 transition-colors cursor-pointer">Cancelar</button>
+          <button id="btn-confirm-pin" class="flex-1 py-3 rounded-2xl bg-red-600 text-white font-bold text-sm hover:bg-red-700 transition-colors cursor-pointer">Ingresar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Panel Admin flotante (visible solo en modo admin) -->
+  <div id="admin-floating-bar" class="hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-[150] bg-red-700 text-white rounded-2xl px-5 py-3 shadow-2xl flex items-center gap-4 border border-red-500">
+    <div class="flex items-center gap-2">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+      <span class="font-bold text-sm">Modo Admin Activo</span>
+    </div>
+    <div class="h-5 w-px bg-red-500"></div>
+    <button id="btn-clear-cache" class="text-xs font-bold px-3 py-1.5 rounded-xl bg-white/20 hover:bg-white/30 transition-all cursor-pointer flex items-center gap-1.5">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+      Limpiar Caché
+    </button>
+    <button id="btn-exit-admin" class="text-xs font-bold px-3 py-1.5 rounded-xl bg-white/20 hover:bg-white/30 transition-all cursor-pointer">
+      ✕ Salir
+    </button>
   </div>
 
   <!-- Grid Responsivo de Fotos y Videos (Sin nombres ni mensajes) -->
@@ -119,6 +170,101 @@
   const modalLikesCount = document.getElementById('modal-likes-count');
   const modalBtnLike = document.getElementById('modal-btn-like');
   const btnCloseModal = document.getElementById('btn-close-modal');
+
+  // Admin mode elements
+  const adminPinModal = document.getElementById('admin-pin-modal');
+  const adminPinInput = document.getElementById('admin-pin-input') as HTMLInputElement;
+  const adminPinError = document.getElementById('admin-pin-error');
+  const btnCancelPin = document.getElementById('btn-cancel-pin');
+  const btnConfirmPin = document.getElementById('btn-confirm-pin');
+  const adminFloatingBar = document.getElementById('admin-floating-bar');
+  const btnClearCache = document.getElementById('btn-clear-cache');
+  const btnExitAdmin = document.getElementById('btn-exit-admin');
+  const btnAdminPanel = document.getElementById('btn-admin-panel');
+
+  const ADMIN_PIN = 'senati2026'; // PIN secreto
+  let isAdminMode = false;
+  let badgeClickCount = 0;
+  let badgeClickTimer: ReturnType<typeof setTimeout> | null = null;
+
+  // Trigger secreto: 7 clics en el badge de conteo
+  countBadge?.addEventListener('click', () => {
+    badgeClickCount++;
+    if (badgeClickTimer) clearTimeout(badgeClickTimer);
+    badgeClickTimer = setTimeout(() => { badgeClickCount = 0; }, 2000);
+    if (badgeClickCount >= 7) {
+      badgeClickCount = 0;
+      openPinModal();
+    }
+  });
+
+  function openPinModal() {
+    if (adminPinModal) {
+      adminPinInput.value = '';
+      adminPinError?.classList.add('hidden');
+      adminPinModal.classList.remove('hidden');
+      adminPinModal.classList.add('flex');
+      setTimeout(() => adminPinInput.focus(), 100);
+    }
+  }
+
+  function closePinModal() {
+    adminPinModal?.classList.add('hidden');
+    adminPinModal?.classList.remove('flex');
+  }
+
+  function activateAdminMode() {
+    isAdminMode = true;
+    adminFloatingBar?.classList.remove('hidden');
+    adminFloatingBar?.classList.add('flex');
+    btnAdminPanel?.classList.remove('hidden');
+    closePinModal();
+    renderGallery();
+  }
+
+  function deactivateAdminMode() {
+    isAdminMode = false;
+    adminFloatingBar?.classList.add('hidden');
+    adminFloatingBar?.classList.remove('flex');
+    btnAdminPanel?.classList.add('hidden');
+    renderGallery();
+  }
+
+  btnCancelPin?.addEventListener('click', closePinModal);
+  adminPinModal?.addEventListener('click', (e) => {
+    if (e.target === adminPinModal) closePinModal();
+  });
+
+  adminPinInput?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') verifyPin();
+  });
+
+  btnConfirmPin?.addEventListener('click', verifyPin);
+
+  function verifyPin() {
+    const entered = adminPinInput?.value?.trim();
+    if (entered === ADMIN_PIN) {
+      activateAdminMode();
+    } else {
+      adminPinError?.classList.remove('hidden');
+      adminPinInput.value = '';
+      adminPinInput.classList.add('border-red-400');
+      setTimeout(() => adminPinInput.classList.remove('border-red-400'), 1000);
+    }
+  }
+
+  btnAdminPanel?.addEventListener('click', openPinModal);
+  btnExitAdmin?.addEventListener('click', deactivateAdminMode);
+
+  btnClearCache?.addEventListener('click', async () => {
+    if (!confirm('¿Limpiar caché local y recargar desde la base de datos?')) return;
+    // Borrar localStorage completamente
+    localStorage.clear();
+    // Recargar desde Supabase
+    await galleryStore.syncWithSupabase();
+    alert('✅ Caché limpiada. Galería actualizada desde la base de datos.');
+    renderGallery();
+  });
 
   let currentPhotos: PhotoItem[] = [];
   let sortMode: 'recent' | 'popular' = 'recent';
@@ -235,6 +381,16 @@
               <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
               En Pantalla
             </span>
+            ${isAdminMode ? `
+              <button 
+                data-admin-delete="${photo.id}"
+                class="flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-full bg-red-600 text-white hover:bg-red-700 transition-all cursor-pointer border-0"
+                title="Eliminar foto (admin)"
+              >
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                Eliminar
+              </button>
+            ` : ''}
           </div>
         </div>
       `;
@@ -249,6 +405,25 @@
         e.stopPropagation();
         galleryStore.toggleLike(photo.id);
         renderGallery();
+      });
+
+      // Botón eliminar admin
+      const adminDeleteBtn = card.querySelector(`[data-admin-delete="${photo.id}"]`);
+      adminDeleteBtn?.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const isVideo = photo.mediaType === 'video';
+        if (!confirm(`¿Eliminar este ${isVideo ? 'video' : 'foto'} de la galería? Esta acción no se puede deshacer.`)) return;
+        adminDeleteBtn.textContent = '...';
+        (adminDeleteBtn as HTMLButtonElement).disabled = true;
+        const ok = galleryStore.deletePhoto(photo.id);
+        if (ok) {
+          card.style.transition = 'opacity 0.3s';
+          card.style.opacity = '0';
+          setTimeout(() => { card.remove(); renderGallery(); }, 350);
+        } else {
+          alert('Error al eliminar. Intenta de nuevo.');
+          (adminDeleteBtn as HTMLButtonElement).disabled = false;
+        }
       });
 
       // Detección de fotos eliminadas directamente del storage de Supabase (error 404)
