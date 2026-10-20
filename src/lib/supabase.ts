@@ -3,6 +3,9 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 const DEFAULT_SUPABASE_URL = 'https://stwsoqoirxhzpaidelch.supabase.co';
 const DEFAULT_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN0d3NvcW9pcnhoenBhaWRlbGNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIwMzU2OTQsImV4cCI6MjEwNzYxMTY5NH0.DubNwlTVDFKinM0rmG1Q-Y7mr6xnsTdEQJzdcFumJtU';
 
+// Nombre del bucket de Supabase Storage (cámbialo aquí o en tu archivo .env con PUBLIC_SUPABASE_BUCKET)
+export const SUPABASE_STORAGE_BUCKET = import.meta.env.PUBLIC_SUPABASE_BUCKET || 'galeria-senati';
+
 // Read from env, localStorage, or fallback
 export function getSupabaseConfig(): { url: string; anonKey: string; isConfigured: boolean } {
   let url = import.meta.env.PUBLIC_SUPABASE_URL || DEFAULT_SUPABASE_URL;
@@ -87,9 +90,9 @@ export async function uploadMediaToSupabase(
   const fileName = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${ext}`;
   const filePath = `uploads/${fileName}`;
 
-  // 1. Subir al Storage bucket 'event-media'
+  // 1. Subir al Storage bucket
   const { data: storageData, error: storageError } = await sb.storage
-    .from('event-media')
+    .from(SUPABASE_STORAGE_BUCKET)
     .upload(filePath, file, {
       cacheControl: '3600',
       contentType: file.type || (mediaType === 'video' ? 'video/webm' : 'image/webp'),
@@ -97,13 +100,13 @@ export async function uploadMediaToSupabase(
     });
 
   if (storageError) {
-    console.error('Error al subir a Supabase Storage (event-media):', storageError);
+    console.error(`Error al subir a Supabase Storage (${SUPABASE_STORAGE_BUCKET}):`, storageError);
     throw new Error(`Storage: ${storageError.message}`);
   }
 
   // 2. Obtener URL pública
   const { data: urlData } = sb.storage
-    .from('event-media')
+    .from(SUPABASE_STORAGE_BUCKET)
     .getPublicUrl(filePath);
 
   const publicUrl = urlData?.publicUrl || '';
@@ -176,10 +179,10 @@ export async function deleteMediaFromSupabase(mediaId: string): Promise<boolean>
       .eq('id', mediaId)
       .maybeSingle();
 
-    if (record?.url && record.url.includes('/event-media/')) {
-      const parts = record.url.split('/event-media/');
+    if (record?.url && record.url.includes(`/${SUPABASE_STORAGE_BUCKET}/`)) {
+      const parts = record.url.split(`/${SUPABASE_STORAGE_BUCKET}/`);
       if (parts[1]) {
-        await sb.storage.from('event-media').remove([parts[1]]);
+        await sb.storage.from(SUPABASE_STORAGE_BUCKET).remove([parts[1]]);
       }
     }
 
