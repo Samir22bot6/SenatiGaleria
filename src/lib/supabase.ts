@@ -1,5 +1,5 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
-import { uploadMediaToCloudinary, isCloudinaryConfigured, getCloudinaryConfig } from './cloudinary';
+import { uploadMediaToCloudinary, deleteMediaFromCloudinary, isCloudinaryConfigured, getCloudinaryConfig } from './cloudinary';
 
 const DEFAULT_SUPABASE_URL = 'https://stwsoqoirxhzpaidelch.supabase.co';
 const DEFAULT_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN0d3NvcW9pcnhoenBhaWRlbGNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIwMzU2OTQsImV4cCI6MjEwNzYxMTY5NH0.DubNwlTVDFKinM0rmG1Q-Y7mr6xnsTdEQJzdcFumJtU';
@@ -185,17 +185,22 @@ export async function deleteMediaFromSupabase(mediaId: string): Promise<boolean>
   if (!sb) return false;
 
   try {
-    // 1. Obtener registro para borrar archivo de Storage
+    // 1. Obtener registro para borrar archivo de Cloudinary o Supabase Storage
     const { data: record } = await sb
       .from('media_uploads')
-      .select('url')
+      .select('url, media_type')
       .eq('id', mediaId)
       .maybeSingle();
 
-    if (record?.url && record.url.includes(`/${SUPABASE_STORAGE_BUCKET}/`)) {
-      const parts = record.url.split(`/${SUPABASE_STORAGE_BUCKET}/`);
-      if (parts[1]) {
-        await sb.storage.from(SUPABASE_STORAGE_BUCKET).remove([parts[1]]);
+    if (record?.url) {
+      if (record.url.includes('cloudinary.com')) {
+        const isVideo = record.media_type === 'video' || record.url.includes('/video/');
+        await deleteMediaFromCloudinary(record.url, isVideo ? 'video' : 'image');
+      } else if (record.url.includes(`/${SUPABASE_STORAGE_BUCKET}/`)) {
+        const parts = record.url.split(`/${SUPABASE_STORAGE_BUCKET}/`);
+        if (parts[1]) {
+          await sb.storage.from(SUPABASE_STORAGE_BUCKET).remove([parts[1]]);
+        }
       }
     }
 

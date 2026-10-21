@@ -73,11 +73,14 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
       </div>
 
       <span
-        class="hidden md:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 uppercase tracking-wider"
+        id="proj-live-badge"
+        class="hidden md:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 uppercase tracking-wider transition-colors"
       >
-        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"
+        <span
+          id="proj-live-dot"
+          class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"
         ></span>
-        EN VIVO
+        <span id="proj-live-text">EN VIVO</span>
       </span>
     </div>
 
@@ -251,10 +254,10 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
       </div>
     </div>
 
-    <!-- Columna marquee derecha (baja) — Más grande, separada y respetando el espacio del QR -->
+    <!-- Columna marquee derecha (baja) — Simétrica a la izquierda y sin corte de blur -->
     <div
       id="marquee-right-wrap"
-      class="absolute right-3 lg:right-6 xl:right-9 2xl:right-12 top-14 bottom-[200px] w-[210px] xl:w-[250px] 2xl:w-[280px] overflow-hidden pointer-events-none hidden lg:block z-10"
+      class="absolute right-3 lg:right-6 xl:right-9 2xl:right-12 top-14 bottom-4 w-[210px] xl:w-[250px] 2xl:w-[280px] overflow-hidden pointer-events-none hidden lg:block z-10"
       style="mask-image: linear-gradient(to bottom, transparent 0%, black 7%, black 93%, transparent 100%); -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 7%, black 93%, transparent 100%);"
     >
       <div
@@ -288,17 +291,25 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
       >
         <div
           id="main-frame"
-          class="relative w-full rounded-2xl overflow-hidden bg-black/95 flex items-center justify-center"
+          class="relative w-full rounded-2xl overflow-hidden bg-gradient-to-tr from-slate-950 via-[#040e22] to-[#0d051a] flex items-center justify-center shadow-inner"
           style="height: clamp(340px, 58vh, 680px); aspect-ratio: 16/9;"
         >
-          <!-- Fondo difuminado dinámico (Pillarbox blur) para fotos verticales/cuadradas -->
+          <!-- Fondo difuminado dinámico (Pillarbox ambient blur) para fotos y videos verticales -->
           <img
             id="main-display-bg"
             src=""
             alt=""
-            class="absolute inset-0 w-full h-full object-cover filter blur-2xl opacity-40 scale-125 pointer-events-none transition-all duration-700 hidden"
+            class="absolute inset-0 w-full h-full object-cover filter blur-3xl opacity-60 scale-125 pointer-events-none transition-all duration-700 hidden"
           />
-          <div class="absolute inset-0 bg-black/35 pointer-events-none"></div>
+          <video
+            id="main-display-bg-video"
+            src=""
+            autoplay
+            muted
+            loop
+            playsinline
+            class="absolute inset-0 w-full h-full object-cover filter blur-3xl opacity-60 scale-125 pointer-events-none transition-all duration-700 hidden"
+          ></video>
 
           <!-- Estado Vacío en Pantalla Gigante cuando no hay fotos aún -->
           <div
@@ -604,20 +615,20 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
     animation: fadeKen 8s ease-out forwards;
   }
 
-  /* ── Marquee columns ─────────────────────────────────────── */
+  /* ── Marquee columns con bucle infinito perfecto ──────────────── */
   @keyframes marqueeUp {
-    from {
+    0% {
       transform: translateY(0);
     }
-    to {
+    100% {
       transform: translateY(-50%);
     }
   }
   @keyframes marqueeDown {
-    from {
+    0% {
       transform: translateY(-50%);
     }
-    to {
+    100% {
       transform: translateY(0);
     }
   }
@@ -627,10 +638,10 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
     will-change: transform;
   }
   .marquee-col.running-up {
-    animation: marqueeUp var(--marquee-dur, 22s) linear infinite;
+    animation: marqueeUp var(--marquee-dur, 30s) linear infinite;
   }
   .marquee-col.running-down {
-    animation: marqueeDown var(--marquee-dur, 22s) linear infinite;
+    animation: marqueeDown var(--marquee-dur, 30s) linear infinite;
   }
   .marquee-col:hover {
     animation-play-state: paused;
@@ -643,20 +654,18 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
     border-radius: 16px;
     overflow: hidden;
     cursor: pointer;
-    border: 2px solid rgba(255, 255, 255, 0.1);
-    background: rgba(10, 5, 25, 0.55);
-    backdrop-filter: blur(10px);
+    border: 2px solid rgba(255, 255, 255, 0.12);
+    background: #090518;
     transition:
       transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1),
       border-color 0.4s,
-      box-shadow 0.4s,
-      opacity 0.4s;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+      box-shadow 0.4s;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.65);
   }
   .mq-card:hover {
     transform: scale(1.035);
-    border-color: rgba(0, 163, 224, 0.75);
-    box-shadow: 0 10px 30px rgba(0, 163, 224, 0.35);
+    border-color: rgba(0, 163, 224, 0.9);
+    box-shadow: 0 10px 30px rgba(0, 163, 224, 0.45);
     z-index: 5;
   }
   .mq-card.highlight {
@@ -670,15 +679,12 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
     width: 100%;
     aspect-ratio: 16/10;
     object-fit: cover;
-    opacity: 0.65;
-    transition:
-      opacity 0.4s,
-      transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+    opacity: 1;
+    transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
     display: block;
   }
   .mq-card:hover .mq-thumb,
   .mq-card.highlight .mq-thumb {
-    opacity: 1;
     transform: scale(1.05);
   }
   .mq-video-badge {
@@ -726,6 +732,9 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
   const mainDisplayBg = document.getElementById(
     "main-display-bg",
   ) as HTMLImageElement | null;
+  const mainDisplayBgVideo = document.getElementById(
+    "main-display-bg-video",
+  ) as HTMLVideoElement | null;
   const slideProgressBar = document.getElementById(
     "slide-progress-bar",
   ) as HTMLElement | null;
@@ -762,6 +771,26 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
   const iconExpand = document.getElementById("icon-expand")!;
   const iconCompress = document.getElementById("icon-compress")!;
   const projectionHeader = document.getElementById("projection-header");
+  const projLiveBadge = document.getElementById("proj-live-badge");
+  const projLiveText = document.getElementById("proj-live-text");
+  const projLiveDot = document.getElementById("proj-live-dot");
+
+  function updateTransmissionBadge() {
+    const isLive = galleryStore.isTransmissionActive();
+    if (projLiveBadge && projLiveText && projLiveDot) {
+      if (isLive) {
+        projLiveBadge.className =
+          "hidden md:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 uppercase tracking-wider transition-colors";
+        projLiveDot.className = "w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse";
+        projLiveText.textContent = "EN VIVO";
+      } else {
+        projLiveBadge.className =
+          "hidden md:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-amber-500/20 text-amber-300 border border-amber-500/30 uppercase tracking-wider transition-colors";
+        projLiveDot.className = "w-1.5 h-1.5 rounded-full bg-amber-400";
+        projLiveText.textContent = "FINALIZADO";
+      }
+    }
+  }
 
   // ── Auto-ocultar cabecera superior al estar inactivo ──
   let headerHideTimer: ReturnType<typeof setTimeout> | null = null;
@@ -963,53 +992,78 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
     slideProgressBar.style.width = computedW;
   }
 
+  // ── Obtener portada o primer frame de foto/video ──
+  function getPosterOrThumbnail(photo?: PhotoItem): string {
+    if (!photo) return "";
+    if (photo.thumbnailUrl) return photo.thumbnailUrl;
+    if (photo.mediaType === "video" && photo.url && photo.url.includes("cloudinary.com")) {
+      return photo.url.replace(/\.[a-zA-Z0-9]+$/, ".jpg");
+    }
+    return photo.mediaType === "video" ? "" : photo.url;
+  }
+
   /**
-   * Genera tarjetas del marquee lateral con mayor tamaño, mejor resolución y clic directo
+   * Genera una tarjeta individual del marquee lateral con primer frame real para videos
    */
-  function buildMarqueeCards(photos: PhotoItem[]) {
-    return photos.map((photo, idx) => {
-      const src =
-        photo.thumbnailUrl || (photo.mediaType === "video" ? "" : photo.url);
-      const isVideo = photo.mediaType === "video";
+  function createMarqueeCard(photo: PhotoItem, isHighlighted: boolean) {
+    const isVideo = photo.mediaType === "video";
+    const poster = getPosterOrThumbnail(photo);
 
-      const card = document.createElement("div");
-      card.className = `mq-card ${idx === currentIndex ? "highlight" : ""}`;
-      card.setAttribute("data-photo-id", photo.id);
-      card.title = `Proyectar ${isVideo ? "video" : "foto"} en el centro`;
+    const card = document.createElement("div");
+    card.className = `mq-card ${isHighlighted ? "highlight" : ""}`;
+    card.setAttribute("data-photo-id", photo.id);
+    card.title = `Proyectar ${isVideo ? "video" : "foto"} en el centro`;
 
+    if (poster) {
       const img = document.createElement("img");
       img.className = "mq-thumb";
-      img.src = src || photo.url;
-      img.alt = "Media SENATI";
+      img.src = poster;
+      img.alt = isVideo ? "Portada Video SENATI" : "Foto SENATI";
       img.loading = "lazy";
       card.appendChild(img);
+    } else if (isVideo) {
+      // Si aún no hay poster estático, el tag video nativo muestra su primer frame con #t=0.001
+      const vid = document.createElement("video");
+      vid.className = "mq-thumb object-cover pointer-events-none";
+      vid.src = `${photo.url}#t=0.001`;
+      vid.preload = "metadata";
+      vid.muted = true;
+      vid.playsInline = true;
+      card.appendChild(vid);
+    } else {
+      const img = document.createElement("img");
+      img.className = "mq-thumb";
+      img.src = photo.url;
+      img.alt = "Foto SENATI";
+      img.loading = "lazy";
+      card.appendChild(img);
+    }
 
-      // Gradiente suave inferior para realce visual
-      const overlay = document.createElement("div");
-      overlay.className =
-        "absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-transparent pointer-events-none";
-      card.appendChild(overlay);
+    // Gradiente suave inferior para realce visual
+    const overlay = document.createElement("div");
+    overlay.className =
+      "absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-transparent pointer-events-none";
+    card.appendChild(overlay);
 
-      if (isVideo) {
-        const badge = document.createElement("span");
-        badge.className = "mq-video-badge";
-        badge.innerHTML =
-          '<span class="w-1.5 h-1.5 rounded-full bg-cyan-300 animate-pulse"></span> VID 8s';
-        card.appendChild(badge);
+    if (isVideo) {
+      const badge = document.createElement("span");
+      badge.className = "mq-video-badge";
+      badge.innerHTML =
+        '<span class="w-1.5 h-1.5 rounded-full bg-cyan-300 animate-pulse"></span> VID 8s';
+      card.appendChild(badge);
+    }
+
+    // Clic directo para proyectar esta foto o video
+    card.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const targetIdx = photos.findIndex((p) => p.id === photo.id);
+      if (targetIdx !== -1) {
+        selectPhoto(targetIdx);
+        if (isSlideshowActive) scheduleNext();
       }
-
-      // Clic directo para proyectar esta foto
-      card.addEventListener("click", (e) => {
-        e.stopPropagation();
-        const targetIdx = photos.findIndex((p) => p.id === photo.id);
-        if (targetIdx !== -1) {
-          selectPhoto(targetIdx);
-          if (isSlideshowActive) scheduleNext();
-        }
-      });
-
-      return card;
     });
+
+    return card;
   }
 
   function renderFilmStrips() {
@@ -1023,28 +1077,29 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
     marqueeLeft.innerHTML = "";
     marqueeRight.innerHTML = "";
 
-    // Dos copias continuas para el scroll infinito suave
-    const cardsA = buildMarqueeCards(photos);
-    const cardsB = buildMarqueeCards(photos);
+    // Para evitar cortes abruptos y que el bucle sea perfectamente continuo e infinito,
+    // multiplicamos la lista base para que siempre tenga al menos 10 tarjetas
+    let baseList = [...photos];
+    while (baseList.length < 10) {
+      baseList = baseList.concat(photos);
+    }
 
-    // Columna izquierda: hacia arriba
-    cardsA.forEach((c) => marqueeLeft.appendChild(c));
-    cardsB.forEach((c) =>
-      marqueeLeft.appendChild(c.cloneNode(true) as HTMLElement),
-    );
+    const curId = photos[currentIndex]?.id;
 
-    // Columna derecha: hacia abajo (con desfase para fluidez natural)
-    const cardsC = buildMarqueeCards(photos);
-    const cardsD = buildMarqueeCards(photos);
-    cardsC.forEach((c) => marqueeRight.appendChild(c));
-    cardsD.forEach((c) =>
-      marqueeRight.appendChild(c.cloneNode(true) as HTMLElement),
-    );
+    // Dos bloques exactamente idénticos (Set 1 y Set 2) para que el loop al 50% sea imperceptible
+    baseList.forEach((photo) => {
+      marqueeLeft.appendChild(createMarqueeCard(photo, photo.id === curId));
+      marqueeRight.appendChild(createMarqueeCard(photo, photo.id === curId));
+    });
+    baseList.forEach((photo) => {
+      marqueeLeft.appendChild(createMarqueeCard(photo, photo.id === curId));
+      marqueeRight.appendChild(createMarqueeCard(photo, photo.id === curId));
+    });
 
-    // Duración de animación dinámica: suave y cinematográfica
-    const dur = Math.min(65, Math.max(12, photos.length * 4.5));
+    // Duración de animación dinámica suave y cinematográfica
+    const dur = Math.max(26, baseList.length * 3.2);
     marqueeLeft.style.setProperty("--marquee-dur", `${dur}s`);
-    marqueeRight.style.setProperty("--marquee-dur", `${dur}s`);
+    marqueeRight.style.setProperty("--marquee-dur", `${dur * 1.15}s`);
 
     marqueeLeft.classList.remove("running-up", "running-down");
     marqueeRight.classList.remove("running-up", "running-down");
@@ -1203,22 +1258,48 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
     }
 
     // Actualizar fondo desenfocado y ambilight reactivo del centro
-    const mediaUrl = cur.thumbnailUrl || cur.url;
+    const posterUrl = getPosterOrThumbnail(cur);
+    const mediaUrl = posterUrl || cur.url;
     if (ambientGlowImg) ambientGlowImg.src = mediaUrl;
-    if (mainDisplayBg) mainDisplayBg.src = mediaUrl;
 
     if (cur.mediaType === "video") {
       mainImage.classList.add("hidden");
       mainVideo.classList.remove("hidden");
+      if (posterUrl) {
+        mainVideo.poster = posterUrl;
+      }
       mainVideo.src = cur.url;
       mainVideo.currentTime = 0;
       mainVideo.play().catch(() => {});
       mainVideo.classList.remove(...transitions);
       void (mainVideo as any).offsetWidth;
       mainVideo.classList.add(anim);
+
+      // Fondo dinámico ambient blur para video (sin pantalla negra)
+      if (mainDisplayBgVideo) {
+        mainDisplayBgVideo.src = cur.url;
+        mainDisplayBgVideo.classList.remove("hidden");
+        mainDisplayBgVideo.play().catch(() => {});
+      }
+      if (mainDisplayBg) {
+        if (posterUrl) {
+          mainDisplayBg.src = posterUrl;
+          mainDisplayBg.classList.remove("hidden");
+        } else {
+          mainDisplayBg.classList.add("hidden");
+        }
+      }
     } else {
       mainVideo.pause();
       mainVideo.classList.add("hidden");
+      if (mainDisplayBgVideo) {
+        mainDisplayBgVideo.pause();
+        mainDisplayBgVideo.classList.add("hidden");
+      }
+      if (mainDisplayBg) {
+        mainDisplayBg.src = cur.url;
+        mainDisplayBg.classList.remove("hidden");
+      }
       mainImage.classList.remove("hidden");
       mainImage.classList.remove(...transitions, "anim-ken-burns");
       void (mainImage as any).offsetWidth;
@@ -1243,21 +1324,29 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
     photos.forEach((photo, idx) => {
       const isSelected = idx === currentIndex;
       const isVideo = photo.mediaType === "video";
+      const poster = getPosterOrThumbnail(photo);
       const btn = document.createElement("button");
       btn.className = `relative shrink-0 w-20 h-13 sm:w-24 sm:h-16 rounded-xl overflow-hidden cursor-pointer transition-all duration-300 transform ${
         isSelected
           ? "ring-2 ring-cyan-400 scale-105 shadow-xl shadow-cyan-500/50 z-10 opacity-100"
           : "opacity-40 hover:opacity-85 ring-1 ring-white/15"
       }`;
-      const src =
-        photo.thumbnailUrl ||
-        (isVideo
-          ? "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=300&q=80"
-          : photo.url);
-      btn.innerHTML = `
-        <img src="${src}" alt="Media" class="w-full h-full object-cover pointer-events-none"/>
-        ${isVideo ? '<span class="absolute bottom-1 right-1 bg-black/85 text-cyan-300 text-[8px] font-bold px-1.5 py-0.5 rounded backdrop-blur-xs">▶ VID</span>' : ""}
-      `;
+
+      if (poster) {
+        btn.innerHTML = `
+          <img src="${poster}" alt="Media" class="w-full h-full object-cover pointer-events-none"/>
+          ${isVideo ? '<span class="absolute bottom-1 right-1 bg-black/85 text-cyan-300 text-[8px] font-bold px-1.5 py-0.5 rounded backdrop-blur-xs">▶ VID</span>' : ""}
+        `;
+      } else if (isVideo) {
+        btn.innerHTML = `
+          <video src="${photo.url}#t=0.001" preload="metadata" muted playsinline class="w-full h-full object-cover pointer-events-none"></video>
+          <span class="absolute bottom-1 right-1 bg-black/85 text-cyan-300 text-[8px] font-bold px-1.5 py-0.5 rounded backdrop-blur-xs">▶ VID</span>
+        `;
+      } else {
+        btn.innerHTML = `
+          <img src="${photo.url}" alt="Media" class="w-full h-full object-cover pointer-events-none"/>
+        `;
+      }
       btn.addEventListener("click", () => {
         selectPhoto(idx);
         if (isSlideshowActive) scheduleNext();
@@ -1417,6 +1506,9 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
     // Generar código QR para la esquina y el centro
     generateQR(getMobileUrl());
 
+    // Iniciar estado de la transmisión
+    updateTransmissionBadge();
+
     // 2. Suscribirse a eventos del muro y subidas
     galleryStore.subscribe((event) => {
       // Cuando entra una foto nueva recién subida
@@ -1474,6 +1566,10 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
         photos = galleryStore.getPhotos();
         const cur = photos[currentIndex];
         if (cur && photoLikes) photoLikes.textContent = String(cur.likes);
+      }
+      // Cuando cambia el estado de la transmisión (finalizar/reanudar evento)
+      else if (event.type === "TRANSMISSION_STATUS_CHANGED") {
+        updateTransmissionBadge();
       }
     });
   }

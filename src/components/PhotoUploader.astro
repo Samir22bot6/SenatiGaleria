@@ -17,7 +17,7 @@
         <p class="text-[11px] sm:text-sm text-slate-500 font-medium truncate sm:whitespace-normal">Fotos en alta definición y videos cortos (máx 8s) con recortador</p>
       </div>
     </div>
-    <span class="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full text-[10px] sm:text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-xs shrink-0">
+    <span id="header-live-badge" class="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full text-[10px] sm:text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-xs shrink-0">
       <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
       <span class="hidden sm:inline">Transmisión Activa</span>
       <span class="sm:hidden">En Vivo</span>
@@ -26,6 +26,24 @@
 
   <!-- Botones de Acción Inicial (Cámara Pro vs Galería) -->
   <div id="upload-methods-container" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <!-- Banner de Transmisión Finalizada (Modo Admin) -->
+    <div 
+      id="transmission-closed-banner" 
+      class="hidden col-span-1 sm:col-span-2 p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-red-950/80 via-slate-900/90 to-purple-950/80 border-2 border-red-500/50 shadow-2xl backdrop-blur-xl text-center text-white"
+    >
+      <div class="w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-3 rounded-3xl bg-gradient-to-tr from-red-600 to-rose-400 text-white flex items-center justify-center text-3xl shadow-lg shadow-red-600/30 border border-red-300/30">
+        ⏹️
+      </div>
+      <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-red-500/20 text-red-300 border border-red-500/30 mb-2">
+        Transmisión Oficial Finalizada
+      </span>
+      <h3 class="font-heading font-black text-xl sm:text-2xl text-white">
+        El Evento SENATI TEC ha Concluido
+      </h3>
+      <p class="text-xs sm:text-sm text-slate-300 mt-2 max-w-lg mx-auto leading-relaxed">
+        Las subidas de nuevas fotos y videos están cerradas para esta sesión. Muchas gracias a todos los estudiantes y docentes por compartir sus momentos.
+      </p>
+    </div>
     <!-- Opción 1: Cámara Pro en Vivo -->
     <button 
       type="button" 
@@ -776,6 +794,7 @@
   let currentMediaType: MediaType = 'image';
   let currentSource: 'camera' | 'upload' = 'upload';
   let videoDuration: number | undefined = undefined;
+  let currentVideoThumbnail: string | null = null;
 
   // Variables de recorte de video
   let rawVideoDuration = 0;
@@ -1361,6 +1380,37 @@
         initVideoTrimmer(rawVideoDuration);
       };
 
+      tempVideo.onloadeddata = () => {
+        tempVideo.currentTime = 0.05;
+      };
+
+      tempVideo.onseeked = () => {
+        try {
+          const cvs = document.createElement('canvas');
+          const maxDim = 640;
+          let w = tempVideo.videoWidth || 640;
+          let h = tempVideo.videoHeight || 360;
+          if (w > maxDim || h > maxDim) {
+            if (w > h) {
+              h = Math.round((h * maxDim) / w);
+              w = maxDim;
+            } else {
+              w = Math.round((w * maxDim) / h);
+              h = maxDim;
+            }
+          }
+          cvs.width = w;
+          cvs.height = h;
+          const ctx = cvs.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(tempVideo, 0, 0, w, h);
+            currentVideoThumbnail = cvs.toDataURL('image/jpeg', 0.85);
+          }
+        } catch (e) {
+          console.warn('Extracción de primer fotograma:', e);
+        }
+      };
+
       tempVideo.onloadedmetadata = onVideoReady;
       tempVideo.onerror = () => {
         if (isReady) return;
@@ -1825,12 +1875,22 @@
       }
     }
 
+    let videoThumbnailUrl: string | undefined = undefined;
+    if (currentMediaType === 'video') {
+      if (finalUrl && finalUrl.includes('cloudinary.com')) {
+        videoThumbnailUrl = finalUrl.replace(/\.[a-zA-Z0-9]+$/, '.jpg');
+      } else if (currentVideoThumbnail) {
+        videoThumbnailUrl = currentVideoThumbnail;
+      }
+    }
+
     // 2. Agregar a la tienda local y sincronizar con todos
     galleryStore.addPhoto({
       id: finalId,
       url: finalUrl!,
       mediaType: currentMediaType,
       durationSeconds: videoDuration,
+      thumbnailUrl: videoThumbnailUrl,
       source: currentSource,
       author: userId,
       uploaderDeviceId: galleryStore.getDeviceId()
@@ -1877,5 +1937,39 @@
 
     const feed = document.getElementById('photo-wall-grid');
     feed?.scrollIntoView({ behavior: 'smooth' });
+  });
+
+  // ── Sincronización del Estado de Transmisión (Cierre de evento por Admin) ──
+  function updateTransmissionUi() {
+    const isLive = galleryStore.isTransmissionActive();
+    const closedBanner = document.getElementById('transmission-closed-banner');
+    const btnCamera = document.getElementById('btn-open-camera');
+    const uploadLabel = document.querySelector('label[for="file-gallery-input"]') as HTMLElement;
+    const headerLiveBadge = document.getElementById('header-live-badge');
+
+    if (!isLive) {
+      closedBanner?.classList.remove('hidden');
+      btnCamera?.classList.add('hidden');
+      uploadLabel?.classList.add('hidden');
+      if (headerLiveBadge) {
+        headerLiveBadge.className = 'inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full text-[10px] sm:text-xs font-bold bg-red-50 text-red-700 border border-red-200 shadow-xs shrink-0';
+        headerLiveBadge.innerHTML = '<span class="w-2 h-2 rounded-full bg-red-500"></span><span>Transmisión Finalizada</span>';
+      }
+    } else {
+      closedBanner?.classList.add('hidden');
+      btnCamera?.classList.remove('hidden');
+      uploadLabel?.classList.remove('hidden');
+      if (headerLiveBadge) {
+        headerLiveBadge.className = 'inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full text-[10px] sm:text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-xs shrink-0';
+        headerLiveBadge.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span><span class="hidden sm:inline">Transmisión Activa</span><span class="sm:hidden">En Vivo</span>';
+      }
+    }
+  }
+
+  updateTransmissionUi();
+  galleryStore.subscribe((e) => {
+    if (e.type === 'TRANSMISSION_STATUS_CHANGED') {
+      updateTransmissionUi();
+    }
   });
 </script>

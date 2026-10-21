@@ -111,3 +111,71 @@ export async function uploadMediaToCloudinary(
     resourceType: mediaType
   };
 }
+
+/**
+ * Extrae el public_id de una URL de Cloudinary
+ * Ejemplo: https://res.cloudinary.com/demo/image/upload/v1234/senati_galeria/foto.webp -> senati_galeria/foto
+ */
+export function extractCloudinaryPublicId(url: string): string | null {
+  if (!url || !url.includes('cloudinary.com')) return null;
+  const match = url.match(/\/upload\/(?:[a-zA-Z0-9_,]+\/)?(?:v\d+\/)?(.+?)(?:\.[a-zA-Z0-9]+)?$/);
+  if (!match) return null;
+  return decodeURIComponent(match[1]);
+}
+
+async function sha1Hex(str: string): Promise<string> {
+  const enc = new TextEncoder();
+  const buffer = await crypto.subtle.digest('SHA-1', enc.encode(str));
+  return Array.from(new Uint8Array(buffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+/**
+ * Elimina un recurso (foto o video) directamente de Cloudinary
+ */
+export async function deleteMediaFromCloudinary(
+  urlOrPublicId: string,
+  mediaType: 'image' | 'video' = 'image'
+): Promise<boolean> {
+  const config = getCloudinaryConfig();
+  if (!config.cloudName) return false;
+
+  const publicId = urlOrPublicId.includes('cloudinary.com')
+    ? extractCloudinaryPublicId(urlOrPublicId)
+    : urlOrPublicId;
+
+  if (!publicId) return false;
+
+  const apiKey = import.meta.env.PUBLIC_CLOUDINARY_API_KEY || (typeof window !== 'undefined' ? localStorage.getItem('senati_cloudinary_api_key') : '') || '';
+  const apiSecret = import.meta.env.PUBLIC_CLOUDINARY_API_SECRET || (typeof window !== 'undefined' ? localStorage.getItem('senati_cloudinary_api_secret') : '') || '';
+
+  if (apiKey && apiSecret) {
+    try {
+      const timestamp = Math.floor(Date.now() / 1000);
+      const strToSign = `public_id=${publicId}&timestamp=${timestamp}${apiSecret}`;
+      const signature = await sha1Hex(strToSign);
+
+      const resourceType = mediaType === 'video' ? 'video' : 'image';
+      const formData = new FormData();
+      formData.append('public_id', publicId);
+      formData.append('api_key', apiKey);
+      formData.append('timestamp', String(timestamp));
+      formData.append('signature', signature);
+
+      const res = await fetch(`https://api.cloudinary.com/v1_1/${config.cloudName}/${resourceType}/destroy`, {
+        method: 'POST',
+        body: formData
+      });
+
+      const json = await res.json();
+      console.log('Resultado de eliminación en Cloudinary:', json);
+      return json?.result === 'ok';
+    } catch (e) {
+      console.warn('Error al eliminar en Cloudinary:', e);
+      return false;
+    }
+  } else {
+    console.info('Para eliminar archivos en Cloudinary desde el navegador, agrega PUBLIC_CLOUDINARY_API_KEY y PUBLIC_CLOUDINARY_API_SECRET en .env');
+  }
+
+  return false;
+}

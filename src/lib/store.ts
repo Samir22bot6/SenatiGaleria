@@ -69,18 +69,26 @@ class EventGalleryStore {
     try {
       const remoteData = await fetchMediaFromSupabase();
       if (remoteData && Array.isArray(remoteData)) {
-        const remotePhotos: PhotoItem[] = remoteData.map((row: any) => ({
-          id: String(row.id),
-          url: row.url,
-          mediaType: (row.media_type as MediaType) || 'image',
-          durationSeconds: row.duration_seconds ? Number(row.duration_seconds) : undefined,
-          timestamp: row.created_at ? new Date(row.created_at).getTime() : Date.now(),
-          likes: Number(row.like_count || 0),
-          isApproved: row.approved !== false,
-          source: 'upload',
-          author: row.user_id || undefined,
-          uploaderDeviceId: row.device_id || undefined
-        }));
+        const remotePhotos: PhotoItem[] = remoteData.map((row: any) => {
+          const isVid = (row.media_type as MediaType) === 'video';
+          let thumb = row.thumbnail_url;
+          if (isVid && !thumb && row.url && row.url.includes('cloudinary.com')) {
+            thumb = row.url.replace(/\.[a-zA-Z0-9]+$/, '.jpg');
+          }
+          return {
+            id: String(row.id),
+            url: row.url,
+            mediaType: (row.media_type as MediaType) || 'image',
+            durationSeconds: row.duration_seconds ? Number(row.duration_seconds) : undefined,
+            thumbnailUrl: thumb,
+            timestamp: row.created_at ? new Date(row.created_at).getTime() : Date.now(),
+            likes: Number(row.like_count || 0),
+            isApproved: row.approved !== false,
+            source: 'upload',
+            author: row.user_id || undefined,
+            uploaderDeviceId: row.device_id || undefined
+          };
+        });
 
         // La base de datos remota es la fuente definitiva de la verdad
         localStorage.setItem(PHOTOS_STORAGE_KEY, JSON.stringify(remotePhotos));
@@ -149,6 +157,13 @@ class EventGalleryStore {
             this.notifyListeners({ type: 'PHOTO_DELETED', data: payload.data });
           }
         })
+        .on('broadcast', { event: 'TRANSMISSION_STATUS_CHANGED' }, (payload: any) => {
+          if (payload && payload.data) {
+            const isLive = payload.data.isLive !== false;
+            localStorage.setItem('senati_event_live', isLive ? 'true' : 'false');
+            this.notifyListeners({ type: 'TRANSMISSION_STATUS_CHANGED', data: { isLive } });
+          }
+        })
         .subscribe();
     } catch (err) {
       console.warn('Supabase realtime init error', err);
@@ -205,13 +220,17 @@ class EventGalleryStore {
     author?: string;
     uploaderDeviceId?: string;
   }): PhotoItem {
-    const photos = this.getPhotos();
+    let thumb = mediaInput.thumbnailUrl;
+    if (mediaInput.mediaType === 'video' && !thumb && mediaInput.url && mediaInput.url.includes('cloudinary.com')) {
+      thumb = mediaInput.url.replace(/\.[a-zA-Z0-9]+$/, '.jpg');
+    }
+
     const newMedia: PhotoItem = {
       id: mediaInput.id || ('media-' + Date.now() + '-' + Math.random().toString(36).substring(2, 7)),
       url: mediaInput.url,
       mediaType: mediaInput.mediaType || 'image',
       durationSeconds: mediaInput.durationSeconds,
-      thumbnailUrl: mediaInput.thumbnailUrl,
+      thumbnailUrl: thumb,
       source: mediaInput.source || 'upload',
       author: mediaInput.author || this.getCurrentUserId(),
       uploaderDeviceId: mediaInput.uploaderDeviceId || this.getDeviceId(),
@@ -399,6 +418,38 @@ class EventGalleryStore {
     if (typeof window === 'undefined') return;
     localStorage.removeItem(PHOTOS_STORAGE_KEY);
     this.syncWithSupabase();
+  }
+
+  // ── Control de Transmisión del Evento (Modo Admin) ──
+  public isTransmissionActive(): boolean {
+    if (typeof window === 'undefined') return true;
+    return localStorage.getItem('senati_event_live') !== 'false';
+  }
+
+  public async setTransmissionActive(isLive: boolean): Promise<void> {
+    if (typeof window === 'undefined') return;
+
+    localStorage.setItem('senati_event_live', isLive ? 'true' : 'false');
+    const payload = { type: 'TRANSMISSION_STATUS_CHANGED', data: { isLive } };
+
+    this.channel?.postMessage(payload);
+
+    if (this.supabaseRealtimeChannel) {
+      this.supabaseRealtimeChannel.send({
+        type: 'broadcast',
+        event: 'TRANSMISSION_STATUS_CHANGED',
+        data: { isLive }
+      });
+    }
+
+    const sb = getSupabase();
+    if (sb) {
+      try {
+        await sb.from('eventos').update({ activo: isLive }).neq('activo', isLive);
+      } catch {}
+    }
+
+    this.notifyListeners(payload);
   }
 }
 
