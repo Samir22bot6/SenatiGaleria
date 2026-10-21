@@ -1,6 +1,6 @@
 ---
 // ProjectionView.astro — Modo Presentación Cinematográfico en Vivo para Pantalla Gigante
-import senatiSymbol from "../assets/Senati-Symbol.png";
+import senatitecLogo from "../assets/senatitec_logo2.png";
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 ---
 
@@ -25,9 +25,10 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
        CABECERA Y BARRA DE CONTROL DE PROYECCIÓN
   ═════════════════════════════════════════════════════════════════════ -->
   <header
-    class="relative z-30 px-3 sm:px-6 py-2.5 flex flex-wrap items-center justify-between gap-3 bg-black/60 backdrop-blur-xl border-b border-white/10 shadow-lg"
+    id="projection-header"
+    class="fixed top-0 inset-x-0 z-30 px-3 sm:px-6 py-2.5 flex flex-wrap items-center justify-between gap-3 bg-black/80 backdrop-blur-xl border-b border-white/10 shadow-2xl transition-all duration-300 ease-in-out transform translate-y-0 opacity-100"
   >
-    <!-- Lado Izquierdo: Botón Volver al Muro + Logo SENATI -->
+    <!-- Lado Izquierdo: Botón Volver al Muro + Logo SENATI TEC -->
     <div class="flex items-center gap-3">
       <!-- Botón Volver al Muro -->
       <a
@@ -54,19 +55,19 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 
       <div class="flex items-center gap-2">
         <div
-          class="w-8 h-8 rounded-lg bg-white border border-cyan-400/40 p-0.5 flex items-center justify-center shadow-md overflow-hidden"
+          class="h-8 rounded-lg bg-white/10 border border-cyan-400/40 p-1 flex items-center justify-center shadow-md overflow-hidden"
         >
           <img
-            src={senatiSymbol.src}
-            alt="SENATI"
-            class="w-full h-full object-contain"
+            src={senatitecLogo.src}
+            alt="SENATI TEC"
+            class="h-full w-auto object-contain"
           />
         </div>
         <div>
           <h1
-            class="font-heading font-black text-sm sm:text-base tracking-tight bg-gradient-to-r from-white via-purple-200 to-cyan-200 bg-clip-text text-transparent"
+            class="font-heading font-black text-sm sm:text-base tracking-tight bg-gradient-to-r from-white via-cyan-200 to-[#00A3E0] bg-clip-text text-transparent"
           >
-            SENATI LIVE GALLERY
+            SENATI TEC
           </h1>
         </div>
       </div>
@@ -172,11 +173,23 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
       </div>
     </div>
 
-    <!-- Lado Derecho: Contador y Fullscreen -->
-    <div class="flex items-center gap-2">
+    <!-- Lado Derecho: Toggle QR, Contador y Fullscreen -->
+    <div class="flex items-center gap-1.5 sm:gap-2">
+      <!-- Botón para Mostrar / Ocultar QR -->
+      <button
+        id="btn-toggle-qr"
+        class="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-purple-600/30 hover:bg-purple-600/50 text-purple-200 hover:text-white border border-purple-500/40 text-xs font-bold transition-all cursor-pointer shadow-sm active:scale-95"
+        title="Mostrar / Ocultar código QR en pantalla"
+      >
+        <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-cyan-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path>
+        </svg>
+        <span id="label-toggle-qr" class="hidden sm:inline">Ocultar QR</span>
+      </button>
+
       <!-- Contador de Fotos -->
       <div
-        class="flex items-center gap-1 px-3 py-1 rounded-xl bg-white/10 border border-white/10 text-[11px] font-bold text-white/80"
+        class="flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-xl bg-white/10 border border-white/10 text-[11px] font-bold text-white/80"
       >
         <span class="text-cyan-400" id="photo-counter-current">0</span>
         <span class="text-white/40">/</span>
@@ -223,12 +236,12 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
        3D FILM STRIPS + VISOR CENTRAL CINEMATOGRÁFICO EXPANDIDO
   ═════════════════════════════════════════════════════════════════════ -->
   <div
-    class="relative flex-1 flex flex-col items-center justify-center overflow-hidden z-10 px-2 sm:px-6"
+    class="relative flex-1 flex flex-col items-center justify-center overflow-hidden z-10 px-2 sm:px-6 pt-12 sm:pt-14"
   >
     <!-- Columna marquee izquierda (sube) — Más grande y separada de los laterales -->
     <div
       id="marquee-left-wrap"
-      class="absolute left-3 lg:left-6 xl:left-9 2xl:left-12 top-4 bottom-4 w-[210px] xl:w-[250px] 2xl:w-[280px] overflow-hidden pointer-events-none hidden lg:block z-10"
+      class="absolute left-3 lg:left-6 xl:left-9 2xl:left-12 top-14 bottom-4 w-[210px] xl:w-[250px] 2xl:w-[280px] overflow-hidden pointer-events-none hidden lg:block z-10"
       style="mask-image: linear-gradient(to bottom, transparent 0%, black 7%, black 93%, transparent 100%); -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 7%, black 93%, transparent 100%);"
     >
       <div
@@ -241,7 +254,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
     <!-- Columna marquee derecha (baja) — Más grande, separada y respetando el espacio del QR -->
     <div
       id="marquee-right-wrap"
-      class="absolute right-3 lg:right-6 xl:right-9 2xl:right-12 top-4 bottom-[200px] w-[210px] xl:w-[250px] 2xl:w-[280px] overflow-hidden pointer-events-none hidden lg:block z-10"
+      class="absolute right-3 lg:right-6 xl:right-9 2xl:right-12 top-14 bottom-[200px] w-[210px] xl:w-[250px] 2xl:w-[280px] overflow-hidden pointer-events-none hidden lg:block z-10"
       style="mask-image: linear-gradient(to bottom, transparent 0%, black 7%, black 93%, transparent 100%); -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 7%, black 93%, transparent 100%);"
     >
       <div
@@ -317,12 +330,12 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
             <h3
               class="font-heading font-black text-xl sm:text-2xl lg:text-3xl text-white tracking-tight mb-1"
             >
-              ¡Esperando Fotos o Videos en Vivo!
+              ¡Esperando Fotos y Videos de SENATI TEC!
             </h3>
             <p
-              class="text-xs sm:text-sm text-cyan-200/80 max-w-md leading-relaxed mb-3"
+              class="text-xs sm:text-sm text-cyan-200/90 max-w-md leading-relaxed mb-3 font-medium"
             >
-              Escanea el código QR con tu celular para subir fotos o videos y verlos proyectados aquí en tiempo real.
+              ¡Sé el primero en salir en la pantalla gigante! Escanea el código QR con la cámara de tu celular y comparte tus momentos en vivo.
             </p>
 
             <!-- QR Central Grande para escanear cómodamente desde la pantalla -->
@@ -407,12 +420,12 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
           >
             <div class="flex items-center gap-3">
               <div
-                class="w-9 h-9 rounded-xl bg-white/10 backdrop-blur-md border border-white/20 p-1 flex items-center justify-center shadow"
+                class="h-9 px-1.5 rounded-xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center shadow"
               >
                 <img
-                  src={senatiSymbol.src}
-                  alt="SENATI"
-                  class="w-full h-full object-contain"
+                  src={senatitecLogo.src}
+                  alt="SENATI TEC"
+                  class="h-7 w-auto object-contain"
                 />
               </div>
               <div>
@@ -474,29 +487,44 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
   <!-- ═══ QR en vivo (Esquina inferior derecha) ═══ -->
   <div
     id="qr-container-card"
-    class="fixed bottom-3 right-3 z-40 bg-black/80 backdrop-blur-xl rounded-2xl p-2.5 sm:p-3 shadow-2xl border border-purple-500/30 flex flex-col items-center max-w-[160px] sm:max-w-[180px] cursor-pointer hover:border-cyan-400/60 transition-all group"
-    title="Clic para copiar enlace"
+    class="fixed bottom-3 right-3 z-40 bg-black/85 backdrop-blur-xl rounded-2xl p-2.5 sm:p-3 shadow-2xl border border-purple-500/40 flex flex-col items-center max-w-[165px] sm:max-w-[185px] transition-all duration-300 group hover:border-cyan-400/60"
   >
+    <!-- Botón directo para ocultar el QR -->
+    <button
+      id="btn-close-qr-card"
+      type="button"
+      class="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-slate-900 border border-white/30 text-white/80 hover:text-white hover:bg-red-600 flex items-center justify-center text-xs font-bold shadow-md transition-colors cursor-pointer"
+      title="Ocultar QR de la pantalla"
+    >
+      ✕
+    </button>
+
     <div
-      class="w-24 h-24 sm:w-28 sm:h-28 bg-white rounded-xl p-1 flex items-center justify-center overflow-hidden shadow-inner"
+      id="qr-img-clickable"
+      class="w-24 h-24 sm:w-28 sm:h-28 bg-white rounded-xl p-1 flex items-center justify-center overflow-hidden shadow-inner cursor-pointer"
+      title="Clic para copiar enlace de subida"
     >
       <img
         id="qr-image"
         src=""
-        alt="QR Evento SENATI"
+        alt="QR Evento SENATI TEC"
         class="w-full h-full object-contain pointer-events-none"
       />
     </div>
-    <div class="mt-2 text-center w-full pointer-events-none">
+
+    <div class="mt-2 text-center w-full">
       <span
-        class="inline-block bg-gradient-to-r from-purple-600 to-cyan-500 text-white text-[9px] font-black uppercase px-2 py-0.5 rounded-full tracking-wider group-hover:scale-105 transition-transform"
+        class="inline-block bg-gradient-to-r from-[#00A3E0] to-purple-600 text-white text-[9.5px] font-black uppercase px-2.5 py-1 rounded-full tracking-wider shadow-sm group-hover:scale-105 transition-transform"
       >
-        ¡Sube tu foto o video!
+        📸 ¡Sube tu foto aquí!
       </span>
+      <p class="text-[9px] text-cyan-200/90 font-semibold mt-1">
+        Escanea con tu cámara
+      </p>
       <input
         type="text"
         id="input-qr-url"
-        class="w-full text-[9px] font-mono mt-1.5 px-2 py-0.5 bg-white/10 border border-white/10 rounded text-white/60 text-center select-all pointer-events-auto"
+        class="w-full text-[8.5px] font-mono mt-1 px-1.5 py-0.5 bg-white/10 border border-white/10 rounded text-white/70 text-center select-all pointer-events-auto"
         readonly
       />
     </div>
@@ -711,6 +739,10 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
   const qrImage = document.getElementById("qr-image") as HTMLImageElement | null;
   const centerEmptyQr = document.getElementById("center-empty-qr") as HTMLImageElement | null;
   const qrContainerCard = document.getElementById("qr-container-card");
+  const qrImgClickable = document.getElementById("qr-img-clickable");
+  const btnCloseQrCard = document.getElementById("btn-close-qr-card");
+  const btnToggleQr = document.getElementById("btn-toggle-qr");
+  const labelToggleQr = document.getElementById("label-toggle-qr");
   const qrUrlInput = document.getElementById(
     "input-qr-url",
   ) as HTMLInputElement;
@@ -729,6 +761,58 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
   const btnFullscreen = document.getElementById("btn-fullscreen")!;
   const iconExpand = document.getElementById("icon-expand")!;
   const iconCompress = document.getElementById("icon-compress")!;
+  const projectionHeader = document.getElementById("projection-header");
+
+  // ── Auto-ocultar cabecera superior al estar inactivo ──
+  let headerHideTimer: ReturnType<typeof setTimeout> | null = null;
+  let isMouseOverHeader = false;
+
+  function showHeader() {
+    if (!projectionHeader) return;
+    projectionHeader.classList.remove("-translate-y-full", "opacity-0", "pointer-events-none");
+    projectionHeader.classList.add("translate-y-0", "opacity-100", "pointer-events-auto");
+    if (container) container.style.cursor = "default";
+
+    if (headerHideTimer) {
+      clearTimeout(headerHideTimer);
+      headerHideTimer = null;
+    }
+
+    // Auto-ocultar tras 3 segundos de inactividad
+    headerHideTimer = setTimeout(() => {
+      if (!isMouseOverHeader) {
+        hideHeader();
+      }
+    }, 3000);
+  }
+
+  function hideHeader() {
+    if (!projectionHeader) return;
+    projectionHeader.classList.remove("translate-y-0", "opacity-100", "pointer-events-auto");
+    projectionHeader.classList.add("-translate-y-full", "opacity-0", "pointer-events-none");
+    if (container) container.style.cursor = "none";
+  }
+
+  projectionHeader?.addEventListener("mouseenter", () => {
+    isMouseOverHeader = true;
+    if (headerHideTimer) clearTimeout(headerHideTimer);
+  });
+
+  projectionHeader?.addEventListener("mouseleave", () => {
+    isMouseOverHeader = false;
+    showHeader();
+  });
+
+  window.addEventListener("mousemove", () => {
+    showHeader();
+  });
+
+  window.addEventListener("touchstart", () => {
+    showHeader();
+  });
+
+  // Iniciar mostrando y programar auto-ocultamiento
+  showHeader();
 
   // ── Estado ──
   let photos: PhotoItem[] = [];
@@ -784,6 +868,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
       toggleSlideshow();
     }
     if (e.key.toLowerCase() === "f") btnFullscreen?.click();
+    if (e.key.toLowerCase() === "q") updateQrVisibility(!isQrVisible);
   });
 
   // ═══════════════════════════════════════════════════════════════════
@@ -1256,6 +1341,50 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
     iconCompress.classList.toggle("hidden", !f);
   });
 
+  // ── Control para Ocultar / Mostrar QR ──
+  let isQrVisible = localStorage.getItem("senati_projection_show_qr") !== "false";
+
+  function updateQrVisibility(visible: boolean) {
+    isQrVisible = visible;
+    localStorage.setItem("senati_projection_show_qr", visible ? "true" : "false");
+
+    if (qrContainerCard) {
+      if (visible) {
+        qrContainerCard.classList.remove("hidden");
+      } else {
+        qrContainerCard.classList.add("hidden");
+      }
+    }
+
+    if (labelToggleQr) {
+      labelToggleQr.textContent = visible ? "Ocultar QR" : "Mostrar QR";
+    }
+
+    if (btnToggleQr) {
+      if (visible) {
+        btnToggleQr.classList.remove("bg-emerald-600/30", "text-emerald-200", "border-emerald-500/40");
+        btnToggleQr.classList.add("bg-purple-600/30", "text-purple-200", "border-purple-500/40");
+        btnToggleQr.title = "Ocultar código QR en pantalla (Atajo: Tecla Q)";
+      } else {
+        btnToggleQr.classList.remove("bg-purple-600/30", "text-purple-200", "border-purple-500/40");
+        btnToggleQr.classList.add("bg-emerald-600/30", "text-emerald-200", "border-emerald-500/40");
+        btnToggleQr.title = "Mostrar código QR en pantalla (Atajo: Tecla Q)";
+      }
+    }
+  }
+
+  // Inicializar estado del QR
+  updateQrVisibility(isQrVisible);
+
+  btnToggleQr?.addEventListener("click", () => {
+    updateQrVisibility(!isQrVisible);
+  });
+
+  btnCloseQrCard?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    updateQrVisibility(false);
+  });
+
   // ── QR Click / Copiar Enlace ──
   function copyQrUrl() {
     const url = qrUrlInput?.value || getMobileUrl();
@@ -1269,7 +1398,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
     }
   }
 
-  qrContainerCard?.addEventListener("click", copyQrUrl);
+  qrImgClickable?.addEventListener("click", copyQrUrl);
   centerEmptyQr?.addEventListener("click", copyQrUrl);
 
   // ═══════════════════════════════════════════════════════════════════

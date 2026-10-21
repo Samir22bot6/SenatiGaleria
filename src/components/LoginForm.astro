@@ -1,21 +1,21 @@
 ---
 // LoginForm.astro
-import senatiSymbol from '../assets/Senati-Symbol.png';
+import senatitecLogo from '../assets/senatitec_logo2.png';
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 ---
 
 <div class="w-full max-w-md mx-auto" data-base-url={base}>
   <!-- Card principal redondeada con estilo SENATI -->
-  <div class="bg-white rounded-3xl shadow-xl shadow-slate-200/60 border border-slate-100 p-8 sm:p-10 relative overflow-hidden">
+  <div class="bg-white rounded-3xl shadow-xl shadow-slate-200/60 border border-slate-100 p-6 sm:p-10 relative overflow-hidden">
     <!-- Barra decorativa superior -->
     <div class="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-[#002855] via-[#00A3E0] to-[#7C3AED]"></div>
 
     <!-- Header institucional -->
     <div class="text-center mb-6">
-      <div class="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-white border-2 border-slate-100 shadow-lg shadow-blue-950/10 mb-3 p-2 transform hover:scale-105 transition-transform">
-        <img src={senatiSymbol.src} alt="SENATI Logo" class="w-full h-full object-contain" />
+      <div class="inline-flex items-center justify-center h-20 px-4 rounded-2xl bg-white border-2 border-slate-100 shadow-lg shadow-blue-950/10 mb-3 p-2 transform hover:scale-105 transition-transform">
+        <img src={senatitecLogo.src} alt="SENATI TEC Logo" class="h-full w-auto object-contain" />
       </div>
-      <h2 class="text-2xl font-extrabold text-[#002855] font-heading tracking-tight">SENATI Event Live</h2>
+      <h2 class="text-2xl font-extrabold text-[#002855] font-heading tracking-tight">SENATI TEC</h2>
       <p class="text-xs sm:text-sm text-slate-500 mt-1 font-medium">Ingresa para subir tus fotos a la pantalla gigante del evento</p>
     </div>
 

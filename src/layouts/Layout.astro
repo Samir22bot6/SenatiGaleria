@@ -1,6 +1,6 @@
 ---
 import '../styles/global.css';
-import senatiSymbol from '../assets/Senati-Symbol.png';
+import senatitecLogo from '../assets/senatitec_logo2.png';
 
 interface Props {
   title?: string;
@@ -9,8 +9,8 @@ interface Props {
 }
 
 const { 
-  title = "SENATI Event Live Gallery - Transmisión y Fotos en Vivo",
-  description = "Plataforma interactiva para eventos de SENATI: sube fotos desde tu móvil y visualízalas en pantalla gigante en tiempo real.",
+  title = "SENATI TEC - Transmisión y Galería en Vivo",
+  description = "Plataforma interactiva para eventos de SENATI TEC: sube fotos y videos desde tu móvil y visualízalos en pantalla gigante en tiempo real.",
   hideNav = false
 } = Astro.props;
 
@@ -22,9 +22,9 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" type="image/png" href={`${base}/Senati-Symbol.png`} />
-    <link rel="shortcut icon" type="image/png" href={`${base}/Senati-Symbol.png`} />
-    <link rel="apple-touch-icon" href={`${base}/Senati-Symbol.png`} />
+    <link rel="icon" type="image/png" href={`${base}/senatitec_logo2.png`} />
+    <link rel="shortcut icon" type="image/png" href={`${base}/senatitec_logo2.png`} />
+    <link rel="apple-touch-icon" href={`${base}/senatitec_logo2.png`} />
     <meta name="generator" content={Astro.generator} />
     <meta name="description" content={description} />
     
@@ -43,33 +43,60 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
       }
     </style>
   </head>
-  <body class="min-h-full flex flex-col text-slate-800">
+  <body class="min-h-full flex flex-col text-slate-800" data-base-url={base}>
     {!hideNav && (
       <header class="bg-[#002855] text-white sticky top-0 z-40 shadow-md border-b border-[#003875]">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <a href={`${base}/`} class="flex items-center gap-3 group">
-            <div class="w-11 h-11 rounded-2xl bg-white p-1 flex items-center justify-center shadow-md group-hover:scale-105 transition-transform overflow-hidden border border-white/20">
-              <img src={senatiSymbol.src} alt="Logo SENATI" class="w-full h-full object-contain" />
+        <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2">
+          <!-- Logo y Marca SENATI TEC -->
+          <a href={`${base}/`} class="flex items-center gap-2 sm:gap-3 group shrink-0 min-w-0">
+            <div class="h-10 sm:h-11 rounded-xl bg-white/10 p-1 flex items-center justify-center shadow-md group-hover:scale-105 transition-transform overflow-hidden border border-white/20 shrink-0">
+              <img src={senatitecLogo.src} alt="SENATI TEC" class="h-8 sm:h-9 w-auto object-contain" />
             </div>
-            <div>
-              <div class="flex items-center gap-2">
-                <span class="font-heading font-black tracking-wider text-xl text-white">SENATI</span>
-                <span class="text-xs bg-[#00A3E0] text-white px-2 py-0.5 rounded-full font-bold uppercase tracking-wide">Live</span>
+            <div class="min-w-0">
+              <div class="flex items-center gap-1.5">
+                <span class="font-heading font-black tracking-wider text-base sm:text-lg text-white whitespace-nowrap">SENATI TEC</span>
+                <span class="text-[9px] sm:text-[10px] bg-[#00A3E0] text-white px-1.5 sm:px-2 py-0.5 rounded-full font-bold uppercase tracking-wide">Live</span>
               </div>
-              <p class="text-[10px] text-cyan-200 uppercase tracking-widest font-semibold">Event Gallery</p>
+              <p class="text-[9px] text-cyan-200 uppercase tracking-widest font-semibold hidden sm:block">Tecnología en Vivo</p>
             </div>
           </a>
 
-          <nav class="flex items-center gap-2 sm:gap-4">
-            <a href={`${base}/login`} class="text-xs sm:text-sm font-semibold text-slate-200 hover:text-white px-3 py-1.5 rounded-lg hover:bg-white/10 transition-colors">
+          <!-- Navegación móvil optimizada -->
+          <nav class="flex items-center gap-1 sm:gap-3 shrink-0">
+            <!-- Botón Acceso (visible cuando NO hay sesión) -->
+            <a 
+              id="nav-link-login"
+              href={`${base}/login`} 
+              class="text-xs sm:text-sm font-semibold text-slate-200 hover:text-white px-2 sm:px-3 py-1.5 rounded-lg hover:bg-white/10 transition-colors"
+            >
               Acceso
             </a>
-            <a href={`${base}/galeria`} class="text-xs sm:text-sm font-semibold text-slate-200 hover:text-white px-3 py-1.5 rounded-lg hover:bg-white/10 transition-colors">
-              Muro & Carga
+
+            <!-- Botón Cerrar Sesión (visible cuando SÍ hay sesión activa) -->
+            <button 
+              id="nav-btn-logout"
+              type="button"
+              class="hidden text-xs sm:text-sm font-semibold text-rose-300 hover:text-rose-100 bg-rose-500/10 hover:bg-rose-500/25 border border-rose-400/30 px-2 sm:px-3 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1.5"
+              title="Cerrar sesión actual"
+            >
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              </svg>
+              <span>Salir</span>
+            </button>
+
+            <a 
+              href={`${base}/galeria`} 
+              class="text-xs sm:text-sm font-semibold text-slate-200 hover:text-white px-2 sm:px-3 py-1.5 rounded-lg hover:bg-white/10 transition-colors"
+            >
+              <span class="hidden sm:inline">Muro & </span>Galería
             </a>
-            <a href={`${base}/presentacion`} class="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold bg-[#00A3E0] hover:bg-[#008cc2] text-white px-3.5 py-1.5 rounded-full shadow-sm hover:shadow transition-all">
-              <span class="w-2 h-2 rounded-full bg-red-400 animate-ping"></span>
-              <span>Modo Pantalla</span>
+            <a 
+              href={`${base}/presentacion`} 
+              class="inline-flex items-center gap-1 sm:gap-1.5 text-xs sm:text-sm font-bold bg-[#00A3E0] hover:bg-[#008cc2] text-white px-2.5 sm:px-3.5 py-1.5 rounded-full shadow-sm hover:shadow transition-all shrink-0"
+            >
+              <span class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-red-400 animate-ping"></span>
+              <span><span class="hidden sm:inline">Modo </span>Pantalla</span>
             </a>
           </nav>
         </div>
@@ -79,5 +106,56 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
     <main class="flex-1 flex flex-col">
       <slot />
     </main>
+
+    <script>
+      import { galleryStore } from '../lib/store';
+      import { getSupabase } from '../lib/supabase';
+
+      function updateNavAuth() {
+        const navLinkLogin = document.getElementById('nav-link-login');
+        const navBtnLogout = document.getElementById('nav-btn-logout');
+        const session = galleryStore.getSession();
+        const isLoggedIn = !!(session && session.isLoggedIn);
+
+        if (navLinkLogin) {
+          if (isLoggedIn) {
+            navLinkLogin.classList.add('hidden');
+          } else {
+            navLinkLogin.classList.remove('hidden');
+          }
+        }
+
+        if (navBtnLogout) {
+          if (isLoggedIn) {
+            navBtnLogout.classList.remove('hidden');
+          } else {
+            navBtnLogout.classList.add('hidden');
+          }
+        }
+      }
+
+      // Ejecutar de inmediato al cargar el DOM
+      updateNavAuth();
+
+      // Escuchar cambios de sesión reactivamente
+      galleryStore.subscribe((event) => {
+        if (event.type === 'SESSION_CHANGED') {
+          updateNavAuth();
+        }
+      });
+
+      // Acción de cerrar sesión
+      const navBtnLogout = document.getElementById('nav-btn-logout');
+      navBtnLogout?.addEventListener('click', async () => {
+        if (!confirm('¿Deseas cerrar tu sesión actual?')) return;
+        galleryStore.clearSession();
+        try {
+          const sb = getSupabase();
+          if (sb) await sb.auth.signOut();
+        } catch {}
+        const base = (document.body.dataset.baseUrl || '').replace(/\/$/, '');
+        window.location.href = `${base}/`;
+      });
+    </script>
   </body>
 </html>
