@@ -40,6 +40,11 @@ jobs:
           PUBLIC_SUPABASE_URL: ${{ secrets.PUBLIC_SUPABASE_URL || secrets.SUPABASE_URL }}
           PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.PUBLIC_SUPABASE_ANON_KEY || secrets.SUPABASE_ANON_KEY }}
           PUBLIC_ADMIN_PIN: ${{ secrets.PUBLIC_ADMIN_PIN || '2026' }}
+          PUBLIC_CLOUDINARY_CLOUD_NAME: ${{ secrets.PUBLIC_CLOUDINARY_CLOUD_NAME }}
+          PUBLIC_CLOUDINARY_UPLOAD_PRESET: ${{ secrets.PUBLIC_CLOUDINARY_UPLOAD_PRESET }}
+          PUBLIC_CLOUDINARY_FOLDER: ${{ secrets.PUBLIC_CLOUDINARY_FOLDER }}
+          PUBLIC_CLOUDINARY_API_KEY: ${{ secrets.PUBLIC_CLOUDINARY_API_KEY }}
+          PUBLIC_CLOUDINARY_API_SECRET: ${{ secrets.PUBLIC_CLOUDINARY_API_SECRET }}
         run: pnpm run build
 
       - name: Upload Pages Artifact
