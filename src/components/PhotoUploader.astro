@@ -1810,15 +1810,17 @@
           finalId = uploadResult.dbId;
         }
       } catch (err: any) {
-        console.warn('Subida a Supabase con advertencia:', err);
-        // Si Supabase no está disponible, comprimir imagen para almacenamiento local sin exceder cuota
+        console.warn('Subida multimedia con advertencia:', err);
+        // Si hay fallo de red, comprimir imagen para almacenamiento local sin exceder cuota
         if (currentMediaType === 'image') {
           try {
             finalUrl = await compressImageForOffline(currentFile);
           } catch {}
         }
-        if (err?.message?.includes('Bucket not found') || err?.message?.includes('row-level security') || err?.message?.includes('Storage:')) {
-          alert(`⚠️ Aviso: La foto se transmitió localmente. En Supabase falta crear el bucket "${SUPABASE_STORAGE_BUCKET}" y habilitar las políticas RLS en el SQL Editor.`);
+        if (err?.message?.includes('Cloudinary')) {
+          alert(`⚠️ Cloudinary: ${err.message}. Verifica tu Cloud Name y Upload Preset en .env`);
+        } else if (err?.message?.includes('Bucket not found') || err?.message?.includes('row-level security') || err?.message?.includes('Storage:')) {
+          alert(`⚠️ Aviso: La foto se transmitió localmente. En Supabase falta crear el bucket "${SUPABASE_STORAGE_BUCKET}" o configurar Cloudinary en .env.`);
         }
       }
     }

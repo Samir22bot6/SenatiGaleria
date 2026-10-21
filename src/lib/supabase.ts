@@ -1,4 +1,5 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import { uploadMediaToCloudinary, isCloudinaryConfigured, getCloudinaryConfig } from './cloudinary';
 
 const DEFAULT_SUPABASE_URL = 'https://stwsoqoirxhzpaidelch.supabase.co';
 const DEFAULT_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN0d3NvcW9pcnhoenBhaWRlbGNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIwMzU2OTQsImV4cCI6MjEwNzYxMTY5NH0.DubNwlTVDFKinM0rmG1Q-Y7mr6xnsTdEQJzdcFumJtU';
@@ -72,8 +73,8 @@ export async function updateLikeCountInDB(mediaId: string, delta: number): Promi
 }
 
 /**
- * Upload media file (File or Blob) to Supabase Storage ('event-media')
- * and insert a record into 'media_uploads' table.
+ * Sube el archivo multimedia a Cloudinary (Storage) y guarda el registro en Supabase DB ('media_uploads').
+ * Si Cloudinary aún no está configurado, utiliza Supabase Storage como respaldo.
  */
 export async function uploadMediaToSupabase(
   file: File | Blob,
@@ -84,37 +85,49 @@ export async function uploadMediaToSupabase(
   const sb = getSupabase();
   if (!sb) throw new Error('Supabase no está configurado');
 
-  const ext = (file instanceof File && file.name.includes('.'))
-    ? file.name.split('.').pop()
-    : (mediaType === 'video' ? 'webm' : 'webp');
-  const fileName = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${ext}`;
-  const filePath = `uploads/${fileName}`;
+  let publicUrl = '';
 
-  // 1. Subir al Storage bucket
-  const { data: storageData, error: storageError } = await sb.storage
-    .from(SUPABASE_STORAGE_BUCKET)
-    .upload(filePath, file, {
-      cacheControl: '3600',
-      contentType: file.type || (mediaType === 'video' ? 'video/webm' : 'image/webp'),
-      upsert: false,
-    });
+  // 1. Subir a Cloudinary si está configurado
+  if (isCloudinaryConfigured()) {
+    try {
+      const cldRes = await uploadMediaToCloudinary(file, mediaType);
+      publicUrl = cldRes.publicUrl;
+    } catch (cldErr: any) {
+      console.error('Error subiendo a Cloudinary:', cldErr);
+      throw cldErr;
+    }
+  } else {
+    // Respaldo en Supabase Storage en caso de que Cloudinary no tenga credenciales
+    const ext = (file instanceof File && file.name.includes('.'))
+      ? file.name.split('.').pop()
+      : (mediaType === 'video' ? 'webm' : 'webp');
+    const fileName = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${ext}`;
+    const filePath = `uploads/${fileName}`;
 
-  if (storageError) {
-    console.error(`Error al subir a Supabase Storage (${SUPABASE_STORAGE_BUCKET}):`, storageError);
-    throw new Error(`Storage: ${storageError.message}`);
+    const { data: storageData, error: storageError } = await sb.storage
+      .from(SUPABASE_STORAGE_BUCKET)
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        contentType: file.type || (mediaType === 'video' ? 'video/webm' : 'image/webp'),
+        upsert: false,
+      });
+
+    if (storageError) {
+      console.error(`Error al subir a Supabase Storage (${SUPABASE_STORAGE_BUCKET}):`, storageError);
+      throw new Error(`Storage: ${storageError.message}`);
+    }
+
+    const { data: urlData } = sb.storage
+      .from(SUPABASE_STORAGE_BUCKET)
+      .getPublicUrl(filePath);
+
+    publicUrl = urlData?.publicUrl || '';
+    if (!publicUrl) {
+      throw new Error('No se pudo obtener la URL pública de la imagen en Supabase');
+    }
   }
 
-  // 2. Obtener URL pública
-  const { data: urlData } = sb.storage
-    .from(SUPABASE_STORAGE_BUCKET)
-    .getPublicUrl(filePath);
-
-  const publicUrl = urlData?.publicUrl || '';
-  if (!publicUrl) {
-    throw new Error('No se pudo obtener la URL pública de la imagen en Supabase');
-  }
-
-  // 3. Insertar fila en 'media_uploads'
+  // 2. Insertar fila en 'media_uploads' de la base de datos Supabase
   const insertPayload: Record<string, any> = {
     url: publicUrl,
     media_type: mediaType,
