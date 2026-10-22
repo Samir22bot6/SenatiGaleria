@@ -1055,7 +1055,8 @@
         canvas.toBlob((blob) => {
           if (blob) {
             currentFile = new File([blob], `photo_crop_${Date.now()}.webp`, { type: 'image/webp' });
-            if (currentMediaUrl && currentMediaUrl.startsWith('blob:')) {
+            // Only revoke the old URL if it's different from the original (so "↺ Original" keeps working)
+            if (currentMediaUrl && currentMediaUrl.startsWith('blob:') && currentMediaUrl !== originalMediaUrl) {
               URL.revokeObjectURL(currentMediaUrl);
             }
             currentMediaUrl = URL.createObjectURL(blob);
