@@ -1781,7 +1781,7 @@
     });
   }
 
-  btnDiscard?.addEventListener('click', () => {
+  function resetUploadPreview() {
     if (currentMediaUrl && currentMediaUrl.startsWith('blob:')) {
       try { URL.revokeObjectURL(currentMediaUrl); } catch {}
     }
@@ -1800,7 +1800,19 @@
     if (cameraFallbackInput) cameraFallbackInput.value = '';
     if (cameraPhotoInput) cameraPhotoInput.value = '';
     if (cameraVideoInput) cameraVideoInput.value = '';
-  });
+
+    if (btnConfirm) {
+      btnConfirm.disabled = false;
+      btnConfirm.innerHTML = `
+        <span>Transmitir a la Pantalla Gigante</span>
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+        </svg>
+      `;
+    }
+  }
+
+  btnDiscard?.addEventListener('click', resetUploadPreview);
 
   // Transmitir a la nube y a la Pantalla Gigante
   btnConfirm?.addEventListener('click', async () => {
@@ -1817,126 +1829,116 @@
       btnConfirm.disabled = true;
     }
 
-    // Si es video y dura más de 8s o se modificaron los cortes pero no se confirmó explícitamente el botón "✂️", recortar ahora
-    if (currentMediaType === 'video' && rawVideoDuration > 8.0 && (!badgeTrimmedOk || badgeTrimmedOk.classList.contains('hidden'))) {
-      try {
-        await performVideoTrim();
-      } catch {}
-    } else if (currentMediaType === 'video' && currentFile && currentFile.size > 8 * 1024 * 1024) {
-      // Si el video pesa más de 8MB, optimizarlo para ahorrar almacenamiento
-      try {
-        await performVideoTrim();
-      } catch {}
-    }
-
-    // Si es imagen, comprimirla a WebP aplicando el filtro para reducir peso y preservar el estilo
-    if (currentMediaType === 'image' && currentFile) {
-      try {
-        const filterToBake = activePhotoFilter !== 'normal' ? PHOTO_FILTER_STYLES[activePhotoFilter] : undefined;
-        currentFile = await compressImageToWebP(currentFile, filterToBake);
-      } catch (err) {
-        console.warn('Compresión WebP advertencia:', err);
-      }
-    }
-
-    const session = galleryStore.getSession();
-    const userId = session?.email || session?.phone || session?.name || 'Asistente SENATI';
-
-    let finalUrl = currentMediaUrl;
-    let finalId: string | undefined = undefined;
-
-    // 1. Subir archivo a Supabase Storage ('event-media') y registrar en DB
-    if (currentFile) {
-      try {
-        const uploadResult = await uploadMediaToSupabase(
-          currentFile,
-          userId,
-          currentMediaType,
-          videoDuration
-        );
-
-        if (uploadResult && uploadResult.publicUrl) {
-          finalUrl = uploadResult.publicUrl;
-          finalId = uploadResult.dbId;
-        }
-      } catch (err: any) {
-        console.warn('Subida multimedia con advertencia:', err);
-        // Si hay fallo de red, comprimir imagen para almacenamiento local sin exceder cuota
-        if (currentMediaType === 'image') {
-          try {
-            finalUrl = await compressImageForOffline(currentFile);
-          } catch {}
-        }
-        if (err?.message?.includes('Cloudinary')) {
-          alert(`⚠️ Cloudinary: ${err.message}. Verifica tu Cloud Name y Upload Preset en .env`);
-        } else if (err?.message?.includes('Bucket not found') || err?.message?.includes('row-level security') || err?.message?.includes('Storage:')) {
-          alert(`⚠️ Aviso: La foto se transmitió localmente. En Supabase falta crear el bucket "${SUPABASE_STORAGE_BUCKET}" o configurar Cloudinary en .env.`);
-        }
-      }
-    }
-
-    let videoThumbnailUrl: string | undefined = undefined;
-    if (currentMediaType === 'video') {
-      if (finalUrl && finalUrl.includes('cloudinary.com')) {
-        videoThumbnailUrl = finalUrl.replace(/\.[a-zA-Z0-9]+$/, '.jpg');
-      } else if (currentVideoThumbnail) {
-        videoThumbnailUrl = currentVideoThumbnail;
-      }
-    }
-
-    // 2. Agregar a la tienda local y sincronizar con todos
-    galleryStore.addPhoto({
-      id: finalId,
-      url: finalUrl!,
-      mediaType: currentMediaType,
-      durationSeconds: videoDuration,
-      thumbnailUrl: videoThumbnailUrl,
-      source: currentSource,
-      author: userId,
-      uploaderDeviceId: galleryStore.getDeviceId()
-    });
-
     try {
-      confetti({
-        particleCount: 70,
-        spread: 90,
-        origin: { y: 0.6 },
-        colors: ['#00A3E0', '#7C3AED', '#FFD700', '#FFFFFF']
-      });
-    } catch {}
+      // 1. Si es video y dura más de 8s o se modificaron los cortes, recortar ahora
+      if (currentMediaType === 'video' && rawVideoDuration > 8.0 && (!badgeTrimmedOk || badgeTrimmedOk.classList.contains('hidden'))) {
+        try {
+          await performVideoTrim();
+        } catch {}
+      } else if (currentMediaType === 'video' && currentFile && currentFile.size > 8 * 1024 * 1024) {
+        try {
+          await performVideoTrim();
+        } catch {}
+      }
 
-    // 3. Limpiar estado
-    if (currentMediaUrl && currentMediaUrl.startsWith('blob:')) {
-      try { URL.revokeObjectURL(currentMediaUrl); } catch {}
+      // 2. Si es imagen, comprimirla a WebP aplicando el filtro para reducir peso y preservar el estilo
+      if (currentMediaType === 'image' && currentFile) {
+        try {
+          const filterToBake = activePhotoFilter !== 'normal' ? PHOTO_FILTER_STYLES[activePhotoFilter] : undefined;
+          currentFile = await compressImageToWebP(currentFile, filterToBake);
+        } catch (err) {
+          console.warn('Compresión WebP advertencia:', err);
+        }
+      }
+
+      const session = galleryStore.getSession();
+      const userId = session?.email || session?.phone || session?.name || 'Asistente SENATI';
+
+      let finalUrl = currentMediaUrl;
+      let finalId: string | undefined = undefined;
+
+      // 3. Subir archivo a Cloudinary y registrar en Supabase DB ('media_uploads')
+      if (currentFile) {
+        try {
+          const uploadResult = await uploadMediaToSupabase(
+            currentFile,
+            userId,
+            currentMediaType,
+            videoDuration
+          );
+
+          if (uploadResult && uploadResult.publicUrl) {
+            finalUrl = uploadResult.publicUrl;
+            finalId = uploadResult.dbId;
+          }
+        } catch (err: any) {
+          console.warn('Subida multimedia con advertencia:', err);
+          if (currentMediaType === 'image') {
+            try {
+              finalUrl = await compressImageForOffline(currentFile);
+            } catch {}
+          }
+          if (err?.message?.includes('Cloudinary')) {
+            alert(`⚠️ Cloudinary: ${err.message}. Verifica tu Cloud Name y Upload Preset.`);
+          } else if (err?.message?.includes('Bucket not found') || err?.message?.includes('row-level security') || err?.message?.includes('Storage:')) {
+            alert(`⚠️ Aviso: La foto se transmitió localmente. En Supabase falta crear el bucket o configurar Cloudinary.`);
+          }
+        }
+      }
+
+      let videoThumbnailUrl: string | undefined = undefined;
+      if (currentMediaType === 'video') {
+        if (finalUrl && finalUrl.includes('cloudinary.com')) {
+          videoThumbnailUrl = finalUrl.replace(/\.[a-zA-Z0-9]+$/, '.jpg');
+        } else if (currentVideoThumbnail) {
+          videoThumbnailUrl = currentVideoThumbnail;
+        }
+      }
+
+      // 4. Agregar a la tienda local y sincronizar con todos
+      if (finalUrl) {
+        galleryStore.addPhoto({
+          id: finalId,
+          url: finalUrl,
+          mediaType: currentMediaType,
+          durationSeconds: videoDuration,
+          thumbnailUrl: videoThumbnailUrl,
+          source: currentSource,
+          author: userId,
+          uploaderDeviceId: galleryStore.getDeviceId()
+        });
+      }
+
+      try {
+        confetti({
+          particleCount: 70,
+          spread: 90,
+          origin: { y: 0.6 },
+          colors: ['#00A3E0', '#7C3AED', '#FFD700', '#FFFFFF']
+        });
+      } catch {}
+
+      // 5. Limpiar y cerrar la previsualización
+      resetUploadPreview();
+
+      const feed = document.getElementById('photo-wall-grid');
+      feed?.scrollIntoView({ behavior: 'smooth' });
+
+    } catch (unexpectedErr: any) {
+      console.error('Error durante la transmisión:', unexpectedErr);
+      alert('Ocurrió un error al procesar el archivo. Por favor inténtalo de nuevo.');
+    } finally {
+      // Siempre asegurar que el botón se reactive y no quede congelado
+      if (btnConfirm && btnConfirm.disabled) {
+        btnConfirm.disabled = false;
+        btnConfirm.innerHTML = `
+          <span>Transmitir a la Pantalla Gigante</span>
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+          </svg>
+        `;
+      }
     }
-    currentMediaUrl = null;
-    currentFile = null;
-    originalMediaUrl = null;
-    originalFile = null;
-    isTrimPreviewActive = false;
-    if (fileGalleryInput) fileGalleryInput.value = '';
-    if (cameraFallbackInput) cameraFallbackInput.value = '';
-    if (cameraPhotoInput) cameraPhotoInput.value = '';
-    if (cameraVideoInput) cameraVideoInput.value = '';
-    if (previewVideo) previewVideo.pause();
-    previewPanel?.classList.add('hidden');
-    videoTrimmerBox?.classList.add('hidden');
-    photoEditorBox?.classList.add('hidden');
-    badgeTrimmedOk?.classList.add('hidden');
-    methodsContainer?.classList.remove('hidden');
-
-    if (btnConfirm) {
-      btnConfirm.disabled = false;
-      btnConfirm.innerHTML = `
-        <span>Transmitir a la Pantalla Gigante</span>
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
-        </svg>
-      `;
-    }
-
-    const feed = document.getElementById('photo-wall-grid');
-    feed?.scrollIntoView({ behavior: 'smooth' });
   });
 
   // ── Sincronización del Estado de Transmisión (Cierre de evento por Admin) ──

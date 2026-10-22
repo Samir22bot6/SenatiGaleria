@@ -75,23 +75,37 @@
     </div>
   </div>
 
-  <!-- Panel Admin flotante (visible solo en modo admin) -->
-  <div id="admin-floating-bar" class="hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-[150] bg-red-700 text-white rounded-2xl px-5 py-3 shadow-2xl flex items-center gap-4 border border-red-500">
-    <div class="flex items-center gap-2">
-      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-      <span class="font-bold text-sm">Modo Admin Activo</span>
+  <!-- Panel Admin flotante (arrastrable) -->
+  <div 
+    id="admin-floating-bar" 
+    class="hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-[150] bg-red-700/95 backdrop-blur-md text-white rounded-2xl px-4 py-2.5 shadow-2xl flex items-center gap-3 border border-red-500/80 select-none transition-shadow"
+    style="touch-action: none;"
+  >
+    <!-- Asa para arrastrar el panel -->
+    <div 
+      id="admin-bar-drag-handle" 
+      class="cursor-grab active:cursor-grabbing flex items-center gap-1.5 pr-2 border-r border-red-500/60 text-red-200 hover:text-white transition-colors"
+      title="Mantén presionado y arrastra para mover el panel a cualquier lugar"
+    >
+      <svg class="w-4 h-4 opacity-75" viewBox="0 0 20 20" fill="currentColor">
+        <path d="M7 2a2 2 0 1 0 .001 4.001A2 2 0 0 0 7 2zm0 6a2 2 0 1 0 .001 4.001A2 2 0 0 0 7 8zm0 6a2 2 0 1 0 .001 4.001A2 2 0 0 0 7 14zm6-12a2 2 0 1 0 .001 4.001A2 2 0 0 0 13 2zm0 6a2 2 0 1 0 .001 4.001A2 2 0 0 0 13 8zm0 6a2 2 0 1 0 .001 4.001A2 2 0 0 0 13 14z"/>
+      </svg>
+      <div class="flex items-center gap-1.5">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+        <span class="font-bold text-xs sm:text-sm whitespace-nowrap">Modo Admin</span>
+      </div>
     </div>
-    <div class="h-5 w-px bg-red-500"></div>
-    <button id="btn-toggle-transmission" class="text-xs font-bold px-3 py-1.5 rounded-xl bg-white/20 hover:bg-white/30 transition-all cursor-pointer flex items-center gap-1.5" title="Finalizar o reactivar la transmisión de fotos">
+
+    <button id="btn-toggle-transmission" class="text-xs font-bold px-2.5 py-1.5 rounded-xl bg-white/20 hover:bg-white/30 transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap" title="Finalizar o reactivar la transmisión de fotos">
       <span id="trans-btn-dot" class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
       <span id="trans-btn-label">Finalizar Evento</span>
     </button>
-    <div class="h-5 w-px bg-red-500"></div>
-    <button id="btn-clear-cache" class="text-xs font-bold px-3 py-1.5 rounded-xl bg-white/20 hover:bg-white/30 transition-all cursor-pointer flex items-center gap-1.5">
-      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-      Limpiar Caché
+    <div class="h-4 w-px bg-red-500/60 hidden sm:block"></div>
+    <button id="btn-clear-cache" class="text-xs font-bold px-2.5 py-1.5 rounded-xl bg-white/20 hover:bg-white/30 transition-all cursor-pointer flex items-center gap-1 whitespace-nowrap">
+      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+      <span>Limpiar</span>
     </button>
-    <button id="btn-exit-admin" class="text-xs font-bold px-3 py-1.5 rounded-xl bg-white/20 hover:bg-white/30 transition-all cursor-pointer">
+    <button id="btn-exit-admin" class="text-xs font-bold px-2.5 py-1.5 rounded-xl bg-white/20 hover:bg-white/30 transition-all cursor-pointer whitespace-nowrap">
       ✕ Salir
     </button>
   </div>
@@ -218,12 +232,116 @@
     adminPinModal?.classList.remove('flex');
   }
 
+  // ── Drag & Drop para el Panel de Admin Flotante ──
+  const dragHandle = document.getElementById('admin-bar-drag-handle');
+  let isDragging = false;
+  let dragStartX = 0;
+  let dragStartY = 0;
+  let initialBarLeft = 0;
+  let initialBarTop = 0;
+
+  function restoreAdminBarPosition() {
+    if (!adminFloatingBar) return;
+    try {
+      const savedPos = sessionStorage.getItem('senati_admin_bar_pos');
+      if (savedPos) {
+        const { x, y } = JSON.parse(savedPos);
+        const barWidth = adminFloatingBar.offsetWidth || 340;
+        const barHeight = adminFloatingBar.offsetHeight || 50;
+        const maxX = Math.max(10, window.innerWidth - barWidth - 10);
+        const maxY = Math.max(10, window.innerHeight - barHeight - 10);
+        const clampedX = Math.min(Math.max(10, x), maxX);
+        const clampedY = Math.min(Math.max(10, y), maxY);
+        adminFloatingBar.classList.remove('bottom-6', 'left-1/2', '-translate-x-1/2');
+        adminFloatingBar.style.left = `${clampedX}px`;
+        adminFloatingBar.style.top = `${clampedY}px`;
+        adminFloatingBar.style.bottom = 'auto';
+        adminFloatingBar.style.transform = 'none';
+      }
+    } catch {}
+  }
+
+  function setupAdminBarDragging() {
+    if (!adminFloatingBar || !dragHandle) return;
+
+    const onPointerDown = (e: PointerEvent) => {
+      if (e.button !== 0 && e.pointerType === 'mouse') return;
+      isDragging = true;
+      try { dragHandle.setPointerCapture(e.pointerId); } catch {}
+
+      const rect = adminFloatingBar.getBoundingClientRect();
+      initialBarLeft = rect.left;
+      initialBarTop = rect.top;
+      dragStartX = e.clientX;
+      dragStartY = e.clientY;
+
+      adminFloatingBar.classList.remove('bottom-6', 'left-1/2', '-translate-x-1/2');
+      adminFloatingBar.style.left = `${initialBarLeft}px`;
+      adminFloatingBar.style.top = `${initialBarTop}px`;
+      adminFloatingBar.style.bottom = 'auto';
+      adminFloatingBar.style.transform = 'none';
+      adminFloatingBar.classList.add('shadow-2xl', 'scale-[1.02]');
+    };
+
+    const onPointerMove = (e: PointerEvent) => {
+      if (!isDragging) return;
+      const deltaX = e.clientX - dragStartX;
+      const deltaY = e.clientY - dragStartY;
+
+      let newLeft = initialBarLeft + deltaX;
+      let newTop = initialBarTop + deltaY;
+
+      const barWidth = adminFloatingBar.offsetWidth || 320;
+      const barHeight = adminFloatingBar.offsetHeight || 50;
+      const maxLeft = Math.max(10, window.innerWidth - barWidth - 10);
+      const maxTop = Math.max(10, window.innerHeight - barHeight - 10);
+
+      newLeft = Math.max(10, Math.min(newLeft, maxLeft));
+      newTop = Math.max(10, Math.min(newTop, maxTop));
+
+      adminFloatingBar.style.left = `${newLeft}px`;
+      adminFloatingBar.style.top = `${newTop}px`;
+    };
+
+    const onPointerUp = (e: PointerEvent) => {
+      if (!isDragging) return;
+      isDragging = false;
+      try { dragHandle.releasePointerCapture(e.pointerId); } catch {}
+      adminFloatingBar.classList.remove('scale-[1.02]');
+
+      const rect = adminFloatingBar.getBoundingClientRect();
+      sessionStorage.setItem('senati_admin_bar_pos', JSON.stringify({ x: rect.left, y: rect.top }));
+    };
+
+    dragHandle.addEventListener('pointerdown', onPointerDown);
+    dragHandle.addEventListener('pointermove', onPointerMove);
+    dragHandle.addEventListener('pointerup', onPointerUp);
+    dragHandle.addEventListener('pointercancel', onPointerUp);
+
+    window.addEventListener('resize', () => {
+      if (adminFloatingBar && !adminFloatingBar.classList.contains('hidden') && adminFloatingBar.style.left) {
+        const rect = adminFloatingBar.getBoundingClientRect();
+        const barWidth = adminFloatingBar.offsetWidth || 320;
+        const barHeight = adminFloatingBar.offsetHeight || 50;
+        const maxLeft = Math.max(10, window.innerWidth - barWidth - 10);
+        const maxTop = Math.max(10, window.innerHeight - barHeight - 10);
+        const clampedX = Math.max(10, Math.min(rect.left, maxLeft));
+        const clampedY = Math.max(10, Math.min(rect.top, maxTop));
+        adminFloatingBar.style.left = `${clampedX}px`;
+        adminFloatingBar.style.top = `${clampedY}px`;
+      }
+    });
+  }
+
+  setupAdminBarDragging();
+
   function activateAdminMode() {
     isAdminMode = true;
     adminFloatingBar?.classList.remove('hidden');
     adminFloatingBar?.classList.add('flex');
     btnAdminPanel?.classList.remove('hidden');
     closePinModal();
+    restoreAdminBarPosition();
     renderGallery();
   }
 

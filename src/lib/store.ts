@@ -239,6 +239,7 @@ class EventGalleryStore {
       isApproved: true,
     };
 
+    const photos = this.getPhotos();
     const updated = [newMedia, ...photos];
     if (typeof window !== 'undefined') {
       localStorage.setItem(PHOTOS_STORAGE_KEY, JSON.stringify(updated));

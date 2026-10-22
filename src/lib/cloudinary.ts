@@ -12,9 +12,9 @@ export interface CloudinaryConfig {
 }
 
 // Configuración por defecto o variables de entorno
-const DEFAULT_CLOUD_NAME = import.meta.env.PUBLIC_CLOUDINARY_CLOUD_NAME || '';
-const DEFAULT_UPLOAD_PRESET = import.meta.env.PUBLIC_CLOUDINARY_UPLOAD_PRESET || '';
-const DEFAULT_FOLDER = import.meta.env.PUBLIC_CLOUDINARY_FOLDER || 'senati_galeria';
+const DEFAULT_CLOUD_NAME = (import.meta.env.PUBLIC_CLOUDINARY_CLOUD_NAME || 'gj9yqmo8').trim();
+const DEFAULT_UPLOAD_PRESET = (import.meta.env.PUBLIC_CLOUDINARY_UPLOAD_PRESET || 'senati_preset').trim();
+const DEFAULT_FOLDER = (import.meta.env.PUBLIC_CLOUDINARY_FOLDER || 'eventos_senati').trim();
 
 export function getCloudinaryConfig(): CloudinaryConfig {
   let cloudName = DEFAULT_CLOUD_NAME;
@@ -26,9 +26,9 @@ export function getCloudinaryConfig(): CloudinaryConfig {
     const savedPreset = localStorage.getItem('senati_cloudinary_upload_preset');
     const savedFolder = localStorage.getItem('senati_cloudinary_folder');
 
-    if (savedCloudName) cloudName = savedCloudName;
-    if (savedPreset) uploadPreset = savedPreset;
-    if (savedFolder) folder = savedFolder;
+    if (savedCloudName && savedCloudName.trim() !== '') cloudName = savedCloudName.trim();
+    if (savedPreset && savedPreset.trim() !== '') uploadPreset = savedPreset.trim();
+    if (savedFolder && savedFolder.trim() !== '') folder = savedFolder.trim();
   }
 
   const isConfigured = Boolean(cloudName && uploadPreset);
@@ -74,7 +74,9 @@ export async function uploadMediaToCloudinary(
   const url = `https://api.cloudinary.com/v1_1/${config.cloudName}/${resourceType}/upload`;
 
   const formData = new FormData();
-  formData.append('file', file);
+  const ext = mediaType === 'video' ? 'webm' : 'webp';
+  const fileName = (file instanceof File && file.name) ? file.name : `senati_media_${Date.now()}.${ext}`;
+  formData.append('file', file, fileName);
   formData.append('upload_preset', config.uploadPreset);
   if (config.folder) {
     formData.append('folder', config.folder);
@@ -145,8 +147,8 @@ export async function deleteMediaFromCloudinary(
 
   if (!publicId) return false;
 
-  const apiKey = import.meta.env.PUBLIC_CLOUDINARY_API_KEY || (typeof window !== 'undefined' ? localStorage.getItem('senati_cloudinary_api_key') : '') || '';
-  const apiSecret = import.meta.env.PUBLIC_CLOUDINARY_API_SECRET || (typeof window !== 'undefined' ? localStorage.getItem('senati_cloudinary_api_secret') : '') || '';
+  const apiKey = (import.meta.env.PUBLIC_CLOUDINARY_API_KEY || (typeof window !== 'undefined' ? localStorage.getItem('senati_cloudinary_api_key') : '') || '582548979528366').trim();
+  const apiSecret = (import.meta.env.PUBLIC_CLOUDINARY_API_SECRET || (typeof window !== 'undefined' ? localStorage.getItem('senati_cloudinary_api_secret') : '') || 'U5Os00tLAOSBZw6J1lgasInUcf0').trim();
 
   if (apiKey && apiSecret) {
     try {
